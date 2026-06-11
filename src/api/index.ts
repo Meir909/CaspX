@@ -34,6 +34,7 @@ import {
 } from '@/lib/session'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+const PASSWORD_RESET_STORAGE_KEY = 'caspx-password-reset-requests'
 
 let currentUser: User = appUser
 let ordersDb: Order[] = [...seedOrders]
@@ -134,9 +135,21 @@ type BecomeCarrierPayload = {
   transportImage?: string
 }
 
+type ResetPasswordPayload = {
+  token: string
+  password: string
+}
+
 type SessionTokens = {
   accessToken: string
   refreshToken: string
+}
+
+type PasswordResetRequestResult = {
+  email: string
+  mailtoLink: string
+  resetLink: string
+  expiresAt: string
 }
 
 type RequestOptions = {
@@ -239,6 +252,77 @@ function splitPoint(value: string) {
   }
 
   return { city: value.trim() }
+}
+
+function mapRegistrationRole(role: UserRole | undefined) {
+  switch (role) {
+    case 'carrier':
+      return 'CARRIER'
+    case 'admin':
+      return 'ADMIN'
+    case 'akimat':
+      return 'AKIMAT'
+    default:
+      return 'CLIENT'
+  }
+}
+
+function createPasswordResetRequest(email: string): PasswordResetRequestResult {
+  const token = `reset-${crypto.randomUUID()}`
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
+  const resetLink = `${window.location.origin}/reset-password?token=${encodeURIComponent(token)}`
+  const subject = encodeURIComponent('CaspX: восстановление доступа')
+  const body = encodeURIComponent(
+    [
+      'Здравствуйте!',
+      '',
+      'Мы получили запрос на сброс пароля для вашего аккаунта CaspX.',
+      `Ссылка для установки нового пароля: ${resetLink}`,
+      `Ссылка действует до: ${new Date(expiresAt).toLocaleString('ru-RU')}`,
+      '',
+      'Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.',
+    ].join('\n'),
+  )
+
+  const stored = localStorage.getItem(PASSWORD_RESET_STORAGE_KEY)
+  const requests = stored ? (JSON.parse(stored) as Array<{ email: string; token: string; expiresAt: string }>) : []
+  const nextRequests = [{ email, token, expiresAt }, ...requests.filter((item) => item.email !== email)]
+  localStorage.setItem(PASSWORD_RESET_STORAGE_KEY, JSON.stringify(nextRequests))
+
+  return {
+    email,
+    mailtoLink: `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`,
+    resetLink,
+    expiresAt,
+  }
+}
+
+function consumePasswordResetToken(token: string, password: string) {
+  const stored = localStorage.getItem(PASSWORD_RESET_STORAGE_KEY)
+  const requests = stored ? (JSON.parse(stored) as Array<{ email: string; token: string; expiresAt: string }>) : []
+  const request = requests.find((item) => item.token === token)
+
+  if (!request) {
+    throw new Error('Ссылка для сброса пароля не найдена или уже использована.')
+  }
+
+  if (new Date(request.expiresAt).getTime() < Date.now()) {
+    localStorage.setItem(
+      PASSWORD_RESET_STORAGE_KEY,
+      JSON.stringify(requests.filter((item) => item.token !== token)),
+    )
+    throw new Error('Срок действия ссылки истек. Запросите сброс пароля заново.')
+  }
+
+  localStorage.setItem(
+    PASSWORD_RESET_STORAGE_KEY,
+    JSON.stringify(requests.filter((item) => item.token !== token)),
+  )
+
+  return {
+    email: request.email,
+    password,
+  }
 }
 
 function toUserRole(role: string, carrierApproved: boolean): UserRole {
@@ -499,6 +583,8 @@ async function mockRegister(data: Partial<User> & { password?: string }): Promis
     name: data.name || appUser.name,
     email: data.email || appUser.email,
     phone: data.phone || appUser.phone,
+    role: data.role || appUser.role,
+    carrierStatus: data.role === 'carrier' ? 'pending' : undefined,
   }
   return currentUser
 }
@@ -650,6 +736,7 @@ export const api = {
             email: data.email,
             phone: data.phone,
             password: data.password,
+            role: mapRegistrationRole(data.role),
           }),
         },
       )
@@ -661,8 +748,14 @@ export const api = {
       return api.auth.login(data.email, data.password)
     },
 
-    forgotPassword: async (_email: string): Promise<void> => {
+    forgotPassword: async (email: string): Promise<PasswordResetRequestResult> => {
       await delay(400)
+      return createPasswordResetRequest(email)
+    },
+
+    resetPassword: async ({ token, password }: ResetPasswordPayload): Promise<void> => {
+      await delay(400)
+      consumePasswordResetToken(token, password)
     },
 
     logout: async (): Promise<void> => {

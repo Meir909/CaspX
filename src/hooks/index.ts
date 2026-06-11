@@ -135,6 +135,11 @@ export const useForgotPassword = () =>
     mutationFn: api.auth.forgotPassword,
   })
 
+export const useResetPassword = () =>
+  useMutation({
+    mutationFn: api.auth.resetPassword,
+  })
+
 export const useLogout = () =>
   useMutation({
     mutationFn: api.auth.logout,

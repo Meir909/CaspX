@@ -27,6 +27,7 @@ import OrdersPage from '@/pages/OrdersPage'
 import PortPage from '@/pages/PortPage'
 import ProfilePage from '@/pages/ProfilePage'
 import RegisterPage from '@/pages/RegisterPage'
+import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import SettingsPage from '@/pages/SettingsPage'
 import SupportPage from '@/pages/SupportPage'
 
@@ -93,6 +94,7 @@ export const routes: RouteObject[] = [
       { path: '/login', element: <GuestRoute><LoginPage /></GuestRoute> },
       { path: '/register', element: <GuestRoute><RegisterPage /></GuestRoute> },
       { path: '/forgot-password', element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
+      { path: '/reset-password', element: <GuestRoute><ResetPasswordPage /></GuestRoute> },
     ],
   },
   {
