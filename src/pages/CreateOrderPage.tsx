@@ -18,7 +18,7 @@ const maxDate = '2030-12-31'
 
 export default function CreateOrderPage() {
   const navigate = useNavigate()
-  const { mutate, isPending } = useCreateOrder()
+  const { mutate, isPending, error: requestError } = useCreateOrder()
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     fromCountry: 'Казахстан',
@@ -296,6 +296,7 @@ export default function CreateOrderPage() {
       </SectionCard>
 
       {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error}</div> : null}
+      {requestError ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{requestError.message}</div> : null}
 
       <Button className="w-full" size="lg" type="submit" disabled={isPending}>
         {isPending ? 'Создаем заказ...' : 'Найти перевозчика'}

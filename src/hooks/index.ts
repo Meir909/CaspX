@@ -135,6 +135,11 @@ export const useForgotPassword = () =>
     mutationFn: api.auth.forgotPassword,
   })
 
+export const useLogout = () =>
+  useMutation({
+    mutationFn: api.auth.logout,
+  })
+
 export const useBecomeCarrier = () =>
   useMutation({
     mutationFn: api.auth.becomeCarrier,

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { Message, Notification, User, UserRole } from '@/types'
 import { appUser, initialMessages, notifications as seedNotifications } from '@/data/mock'
+import { clearSessionTokens, hasSessionTokens, isLiveApiEnabled } from '@/lib/session'
 
 const ROLE_STORAGE_KEY = 'caspx-role'
 const USER_STORAGE_KEY = 'caspx-user'
@@ -13,24 +14,28 @@ function persistUser(user: User) {
 interface AuthStore {
   user: User | null
   isAuthenticated: boolean
+  isReady: boolean
   login: (user: User) => void
   logout: () => void
   switchRole: (role: UserRole) => void
   updateProfile: (payload: Partial<User>) => void
   initialize: () => void
+  setReady: (value: boolean) => void
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
+  isReady: false,
   login: (user) => {
     persistUser(user)
-    set({ user, isAuthenticated: true })
+    set({ user, isAuthenticated: true, isReady: true })
   },
   logout: () => {
     localStorage.removeItem(ROLE_STORAGE_KEY)
     localStorage.removeItem(USER_STORAGE_KEY)
-    set({ user: null, isAuthenticated: false })
+    clearSessionTokens()
+    set({ user: null, isAuthenticated: false, isReady: true })
   },
   switchRole: (role) =>
     set((state) => {
@@ -51,13 +56,23 @@ export const useAuthStore = create<AuthStore>((set) => ({
     const storedUser = localStorage.getItem(USER_STORAGE_KEY)
     const parsedUser = storedUser ? (JSON.parse(storedUser) as User) : null
 
-    const user = parsedUser
-      ? { ...parsedUser, role: storedRole ?? parsedUser.role }
-      : { ...appUser, role: storedRole ?? appUser.role }
+    if (parsedUser) {
+      const user = { ...parsedUser, role: storedRole ?? parsedUser.role }
+      persistUser(user)
+      set({ user, isAuthenticated: true, isReady: true })
+      return
+    }
 
+    if (isLiveApiEnabled() || hasSessionTokens()) {
+      set({ user: null, isAuthenticated: false, isReady: false })
+      return
+    }
+
+    const user = { ...appUser, role: storedRole ?? appUser.role }
     persistUser(user)
-    set({ user, isAuthenticated: true })
+    set({ user, isAuthenticated: true, isReady: true })
   },
+  setReady: (value) => set({ isReady: value }),
 }))
 
 interface UIStore {

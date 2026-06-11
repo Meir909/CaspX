@@ -1,0 +1,4683 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Public self-signup endpoint. ADMIN and SUPERADMIN accounts can only be created by SUPERADMIN.",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Registration rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Register account (public, rate-limited)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokensResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login (public)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokensResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Refresh JWT tokens (public)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Logout by revoking refresh token (public)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Profile rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user profile (protected)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/carrier/apply": {
+      "post": {
+        "operationId": "CarrierController_apply",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCarrierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierProfileEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Carrier profile already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Apply to become a carrier",
+        "tags": [
+          "Carrier"
+        ]
+      }
+    },
+    "/carrier/profile": {
+      "get": {
+        "operationId": "CarrierController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierProfileEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current carrier profile",
+        "tags": [
+          "Carrier"
+        ]
+      },
+      "patch": {
+        "operationId": "CarrierController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCarrierProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierProfileEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update current carrier profile",
+        "tags": [
+          "Carrier"
+        ]
+      }
+    },
+    "/orders": {
+      "post": {
+        "operationId": "OrdersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "ADMIN users cannot create orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create order for current user",
+        "tags": [
+          "Orders"
+        ]
+      },
+      "get": {
+        "operationId": "OrdersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdersListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List orders related to current user",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/my": {
+      "get": {
+        "operationId": "OrdersController_my",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdersListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List current user orders",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/available": {
+      "get": {
+        "operationId": "OrdersController_available",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrdersListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List orders available for carrier assignment",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}": {
+      "get": {
+        "operationId": "OrdersController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get order by id",
+        "tags": [
+          "Orders"
+        ]
+      },
+      "patch": {
+        "operationId": "OrdersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Order is not available for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Only searching or newly created orders can be edited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own order details",
+        "tags": [
+          "Orders"
+        ]
+      },
+      "delete": {
+        "operationId": "OrdersController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Order is not available for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Active or delivered orders cannot be deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own order",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/status": {
+      "patch": {
+        "operationId": "OrdersController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Status transition is not allowed for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update order status",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/assign": {
+      "post": {
+        "operationId": "OrdersController_assign",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CARRIER role or approved carrier profile is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order or carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Order is already assigned or cannot be assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign available order to current carrier",
+        "tags": [
+          "Orders"
+        ]
+      },
+      "patch": {
+        "operationId": "OrdersController_assignPatchAlias",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CARRIER role or approved carrier profile is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order or carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Order is already assigned or cannot be assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign available order to current carrier",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/accept": {
+      "post": {
+        "operationId": "OrdersController_accept",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CARRIER role or approved carrier profile is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order or carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Order is already assigned or cannot be assigned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Accept available order as current carrier",
+        "tags": [
+          "Orders"
+        ]
+      }
+    },
+    "/orders/{id}/tracking": {
+      "post": {
+        "operationId": "TrackingController_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrderTrackingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderTrackingEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Only assigned carrier or SUPERADMIN can create tracking events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Tracking status cannot move backwards or update closed orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create tracking event for order",
+        "tags": [
+          "Tracking"
+        ]
+      },
+      "get": {
+        "operationId": "TrackingController_getTimeline",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderTrackingTimelineResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tracking timeline for order",
+        "tags": [
+          "Tracking"
+        ]
+      }
+    },
+    "/superadmin/users": {
+      "post": {
+        "operationId": "SuperadminUsersController_createUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSuperadminUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create user with any platform role",
+        "tags": [
+          "Superadmin"
+        ]
+      },
+      "get": {
+        "operationId": "SuperadminUsersController_listUsers",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ADMIN",
+              "type": "string",
+              "enum": [
+                "CLIENT",
+                "CARRIER",
+                "ADMIN",
+                "SUPERADMIN"
+              ]
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminUsersListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List users with filters and pagination",
+        "tags": [
+          "Superadmin"
+        ]
+      }
+    },
+    "/superadmin/users/{id}": {
+      "get": {
+        "operationId": "SuperadminUsersController_getUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user by id",
+        "tags": [
+          "Superadmin"
+        ]
+      }
+    },
+    "/superadmin/users/{id}/role": {
+      "patch": {
+        "operationId": "SuperadminUsersController_updateUserRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change user role",
+        "tags": [
+          "Superadmin"
+        ]
+      }
+    },
+    "/superadmin/users/{id}/status": {
+      "patch": {
+        "operationId": "SuperadminUsersController_updateUserStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activate or disable user account",
+        "tags": [
+          "Superadmin"
+        ]
+      }
+    },
+    "/superadmin/users/{id}/password": {
+      "patch": {
+        "operationId": "SuperadminUsersController_resetUserPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetUserPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthUserEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reset user password",
+        "tags": [
+          "Superadmin"
+        ]
+      }
+    },
+    "/superadmin/carriers": {
+      "get": {
+        "operationId": "SuperadminCarriersController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "isApproved",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "transportType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ROAD",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "isApproved",
+            "in": "query",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "required": false,
+            "name": "transportType",
+            "in": "query",
+            "schema": {
+              "example": "ROAD",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminCarriersListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List carrier profiles for debugging and moderation",
+        "tags": [
+          "Superadmin Carriers"
+        ]
+      }
+    },
+    "/superadmin/carriers/{id}/approval": {
+      "patch": {
+        "operationId": "SuperadminCarriersController_setApproval",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCarrierApprovalDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminCarrierApprovalEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set carrier profile approval state",
+        "tags": [
+          "Superadmin Carriers"
+        ]
+      }
+    },
+    "/superadmin/orders": {
+      "get": {
+        "operationId": "SuperadminOrdersController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "clientId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "cmmi83qoc00000kirq90usr",
+              "type": "string"
+            }
+          },
+          {
+            "name": "carrierId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "cmmi83qoc00000kirq90car",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "NEW",
+              "type": "string",
+              "enum": [
+                "NEW",
+                "SEARCHING",
+                "ASSIGNED",
+                "IN_TRANSIT",
+                "DELIVERED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "cargoType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "CONSTRUCTION_MATERIALS",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "clientId",
+            "in": "query",
+            "schema": {
+              "example": "cmmi83qoc00000kirq90usr",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "carrierId",
+            "in": "query",
+            "schema": {
+              "example": "cmmi83qoc00000kirq90car",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "example": "NEW",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "cargoType",
+            "in": "query",
+            "schema": {
+              "example": "CONSTRUCTION_MATERIALS",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminOrdersListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List orders for moderation and debugging",
+        "tags": [
+          "Superadmin Orders"
+        ]
+      }
+    },
+    "/superadmin/orders/{id}": {
+      "get": {
+        "operationId": "SuperadminOrdersController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminOrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get order by id for moderation",
+        "tags": [
+          "Superadmin Orders"
+        ]
+      },
+      "patch": {
+        "operationId": "SuperadminOrdersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSuperadminOrderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminOrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order or carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update order as superadmin",
+        "tags": [
+          "Superadmin Orders"
+        ]
+      },
+      "delete": {
+        "operationId": "SuperadminOrdersController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminOrderEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete order as superadmin",
+        "tags": [
+          "Superadmin Orders"
+        ]
+      }
+    },
+    "/superadmin/vehicles": {
+      "get": {
+        "operationId": "SuperadminVehiclesController_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "carrierId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "cmmi83qoc00000kirq90user",
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "TRUCK",
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "Volvo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "plateNumber",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "123ABC12",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 25,
+              "type": "number"
+            }
+          },
+          {
+            "required": false,
+            "name": "carrierId",
+            "in": "query",
+            "schema": {
+              "example": "cmmi83qoc00000kirq90user",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "example": "TRUCK",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "brand",
+            "in": "query",
+            "schema": {
+              "example": "Volvo",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "plateNumber",
+            "in": "query",
+            "schema": {
+              "example": "123ABC12",
+              "type": "string"
+            }
+          },
+          {
+            "required": false,
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "example": "aktau",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuperadminVehiclesListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "SUPERADMIN role is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List vehicles for debugging and inspection",
+        "tags": [
+          "Superadmin Vehicles"
+        ]
+      }
+    },
+    "/vehicles": {
+      "post": {
+        "operationId": "VehiclesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVehicleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Vehicle plate number already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create vehicle for current carrier profile",
+        "tags": [
+          "Vehicles"
+        ]
+      },
+      "get": {
+        "operationId": "VehiclesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehiclesListResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List vehicles for current carrier profile",
+        "tags": [
+          "Vehicles"
+        ]
+      }
+    },
+    "/vehicles/{id}": {
+      "patch": {
+        "operationId": "VehiclesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVehicleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile or vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Vehicle plate number already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update own vehicle",
+        "tags": [
+          "Vehicles"
+        ]
+      },
+      "delete": {
+        "operationId": "VehiclesController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEnvelopeResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Carrier profile or vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own vehicle",
+        "tags": [
+          "Vehicles"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "CaspX API",
+    "description": "Backend API for the CaspX logistics platform",
+    "version": "1.0",
+    "contact": {
+
+    }
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Enter JWT access token"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "client01@caspex.local"
+          },
+          "password": {
+            "type": "string",
+            "example": "CaspXPass_123"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "CLIENT",
+              "CARRIER",
+              "ADMIN",
+              "SUPERADMIN"
+            ],
+            "example": "CLIENT",
+            "description": "Public registration accepts CLIENT and CARRIER only"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Alibi"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Samatov"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+77017777777"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Mangystau Trans LLC"
+          },
+          "companyLogo": {
+            "type": "string",
+            "example": "https://example.com/logo.png"
+          },
+          "city": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "country": {
+            "type": "string",
+            "example": "Kazakhstan"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "role",
+          "firstName",
+          "lastName",
+          "phone"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90wkeon"
+          },
+          "email": {
+            "type": "string",
+            "example": "client01@caspex.local"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "CLIENT",
+              "CARRIER",
+              "ADMIN",
+              "SUPERADMIN"
+            ],
+            "example": "CLIENT"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Alibi"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Samatov"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+77017777777"
+          },
+          "avatarUrl": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://example.com/avatar.jpg"
+          },
+          "companyName": {
+            "type": "object",
+            "nullable": true,
+            "example": "Mangystau Trans LLC"
+          },
+          "companyLogo": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://example.com/logo.png"
+          },
+          "city": {
+            "type": "object",
+            "nullable": true,
+            "example": "Aktau"
+          },
+          "country": {
+            "type": "object",
+            "nullable": true,
+            "example": "Kazakhstan"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "lastLoginAt": {
+            "type": "object",
+            "nullable": true,
+            "example": "2026-03-09T04:18:44.902Z"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-03-09T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-03-09T04:18:44.902Z"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "firstName",
+          "lastName",
+          "phone",
+          "avatarUrl",
+          "companyName",
+          "companyLogo",
+          "city",
+          "country",
+          "isActive",
+          "lastLoginAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AuthUserEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          }
+        },
+        "required": [
+          "user"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 400
+          },
+          "message": {
+            "oneOf": [
+              {
+                "type": "string",
+                "example": "Invalid payload"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "example": [
+                  "email must be an email"
+                ]
+              }
+            ]
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "client01@caspex.local"
+          },
+          "password": {
+            "type": "string",
+            "example": "CaspXPass_123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AuthTokensResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "user"
+        ]
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "LogoutDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "LogoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "ApplyCarrierDto": {
+        "type": "object",
+        "properties": {
+          "experienceYears": {
+            "type": "number",
+            "example": 5,
+            "minimum": 0,
+            "maximum": 80
+          },
+          "transportType": {
+            "type": "string",
+            "example": "ROAD"
+          },
+          "description": {
+            "type": "string",
+            "example": "Experienced regional truck carrier based in Aktau."
+          }
+        },
+        "required": [
+          "experienceYears",
+          "transportType"
+        ]
+      },
+      "CarrierProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90wkeon"
+          },
+          "userId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90user"
+          },
+          "experienceYears": {
+            "type": "number",
+            "example": 5
+          },
+          "transportType": {
+            "type": "string",
+            "example": "ROAD"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true,
+            "example": "Experienced regional truck carrier based in Aktau."
+          },
+          "isApproved": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "experienceYears",
+          "transportType",
+          "description",
+          "isApproved",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CarrierProfileEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "carrierProfile": {
+            "$ref": "#/components/schemas/CarrierProfileResponseDto"
+          }
+        },
+        "required": [
+          "carrierProfile"
+        ]
+      },
+      "UpdateCarrierProfileDto": {
+        "type": "object",
+        "properties": {
+          "experienceYears": {
+            "type": "number",
+            "example": 5,
+            "minimum": 0,
+            "maximum": 80
+          },
+          "transportType": {
+            "type": "string",
+            "example": "ROAD"
+          },
+          "description": {
+            "type": "string",
+            "example": "Experienced regional truck carrier based in Aktau."
+          }
+        }
+      },
+      "CreateOrderDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Transport construction materials to Kuryk"
+          },
+          "cargoType": {
+            "type": "string",
+            "example": "CONSTRUCTION_MATERIALS"
+          },
+          "weight": {
+            "type": "number",
+            "example": 12.5,
+            "minimum": 0
+          },
+          "volume": {
+            "type": "number",
+            "example": 42,
+            "minimum": 0
+          },
+          "origin": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "destination": {
+            "type": "string",
+            "example": "Kuryk Port"
+          },
+          "originLat": {
+            "type": "number",
+            "example": 43.6532
+          },
+          "originLng": {
+            "type": "number",
+            "example": 51.1975
+          },
+          "destinationLat": {
+            "type": "number",
+            "example": 43.1789
+          },
+          "destinationLng": {
+            "type": "number",
+            "example": 51.6814
+          },
+          "comment": {
+            "type": "string",
+            "example": "Requires covered truck"
+          },
+          "estimatedPrice": {
+            "type": "number",
+            "example": 180000,
+            "minimum": 0
+          },
+          "estimatedDeliveryTime": {
+            "type": "number",
+            "example": 8,
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Estimated delivery time in hours"
+          },
+          "estimatedCarrierSearchTime": {
+            "type": "number",
+            "example": 120,
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Estimated carrier search time in minutes"
+          }
+        },
+        "required": [
+          "title",
+          "cargoType",
+          "weight",
+          "volume",
+          "origin",
+          "destination",
+          "originLat",
+          "originLng",
+          "destinationLat",
+          "destinationLng"
+        ]
+      },
+      "OrderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord"
+          },
+          "clientId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90usr"
+          },
+          "carrierId": {
+            "type": "object",
+            "example": "cmmi83qoc00000kirq90car",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "example": "Transport construction materials to Kuryk"
+          },
+          "cargoType": {
+            "type": "string",
+            "example": "CONSTRUCTION_MATERIALS"
+          },
+          "weight": {
+            "type": "number",
+            "example": 12.5
+          },
+          "volume": {
+            "type": "number",
+            "example": 42
+          },
+          "origin": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "destination": {
+            "type": "string",
+            "example": "Kuryk Port"
+          },
+          "originLat": {
+            "type": "object",
+            "example": 43.6532,
+            "nullable": true
+          },
+          "originLng": {
+            "type": "object",
+            "example": 51.1975,
+            "nullable": true
+          },
+          "destinationLat": {
+            "type": "object",
+            "example": 43.1789,
+            "nullable": true
+          },
+          "destinationLng": {
+            "type": "object",
+            "example": 51.6814,
+            "nullable": true
+          },
+          "comment": {
+            "type": "object",
+            "example": "Requires covered truck",
+            "nullable": true
+          },
+          "estimatedPrice": {
+            "type": "object",
+            "example": 180000,
+            "nullable": true
+          },
+          "estimatedDeliveryTime": {
+            "type": "object",
+            "example": 8,
+            "nullable": true
+          },
+          "estimatedCarrierSearchTime": {
+            "type": "object",
+            "example": 120,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "SEARCHING"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          }
+        },
+        "required": [
+          "id",
+          "clientId",
+          "carrierId",
+          "title",
+          "cargoType",
+          "weight",
+          "volume",
+          "origin",
+          "destination",
+          "originLat",
+          "originLng",
+          "destinationLat",
+          "destinationLng",
+          "comment",
+          "estimatedPrice",
+          "estimatedDeliveryTime",
+          "estimatedCarrierSearchTime",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "OrderEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/OrderResponseDto"
+          }
+        },
+        "required": [
+          "order"
+        ]
+      },
+      "OrdersListResponseDto": {
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderResponseDto"
+            }
+          }
+        },
+        "required": [
+          "orders"
+        ]
+      },
+      "UpdateOrderDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Transport construction materials to Kuryk"
+          },
+          "cargoType": {
+            "type": "string",
+            "example": "CONSTRUCTION_MATERIALS"
+          },
+          "weight": {
+            "type": "number",
+            "example": 12.5,
+            "minimum": 0
+          },
+          "volume": {
+            "type": "number",
+            "example": 42,
+            "minimum": 0
+          },
+          "origin": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "destination": {
+            "type": "string",
+            "example": "Kuryk Port"
+          },
+          "originLat": {
+            "type": "number",
+            "example": 43.6532
+          },
+          "originLng": {
+            "type": "number",
+            "example": 51.1975
+          },
+          "destinationLat": {
+            "type": "number",
+            "example": 43.1789
+          },
+          "destinationLng": {
+            "type": "number",
+            "example": 51.6814
+          },
+          "comment": {
+            "type": "string",
+            "example": "Requires covered truck"
+          },
+          "estimatedPrice": {
+            "type": "number",
+            "example": 180000,
+            "minimum": 0
+          },
+          "estimatedDeliveryTime": {
+            "type": "number",
+            "example": 8,
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Estimated delivery time in hours"
+          },
+          "estimatedCarrierSearchTime": {
+            "type": "number",
+            "example": 120,
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Estimated carrier search time in minutes"
+          }
+        }
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "IN_TRANSIT"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "CreateOrderTrackingDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "IN_TRANSIT"
+          },
+          "location": {
+            "type": "string",
+            "example": "Aktau, Microdistrict 15"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T12:30:00.000Z",
+            "description": "Optional event timestamp, defaults to current time"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "OrderTrackingItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90trk"
+          },
+          "orderId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "IN_TRANSIT"
+          },
+          "location": {
+            "type": "object",
+            "example": "Aktau, Microdistrict 15",
+            "nullable": true
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T12:30:00.000Z"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T12:30:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "orderId",
+          "status",
+          "location",
+          "timestamp",
+          "createdAt"
+        ]
+      },
+      "OrderTrackingEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "tracking": {
+            "$ref": "#/components/schemas/OrderTrackingItemDto"
+          }
+        },
+        "required": [
+          "tracking"
+        ]
+      },
+      "OrderTrackingTimelineResponseDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord"
+          },
+          "currentStatus": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "IN_TRANSIT"
+          },
+          "tracking": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderTrackingItemDto"
+            }
+          }
+        },
+        "required": [
+          "orderId",
+          "currentStatus",
+          "tracking"
+        ]
+      },
+      "CreateSuperadminUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin01@caspex.local"
+          },
+          "password": {
+            "type": "string",
+            "example": "CaspXPass_123"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "CLIENT",
+              "CARRIER",
+              "ADMIN",
+              "SUPERADMIN"
+            ],
+            "example": "ADMIN"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "Akim"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Operator"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+77017777777"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://example.com/avatar.jpg"
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Mangystau Akimat"
+          },
+          "companyLogo": {
+            "type": "string",
+            "example": "https://example.com/logo.png"
+          },
+          "city": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "country": {
+            "type": "string",
+            "example": "Kazakhstan"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "role",
+          "firstName",
+          "lastName",
+          "phone"
+        ]
+      },
+      "SuperadminUsersMetaResponseDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 25
+          },
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "pages": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "pages"
+        ]
+      },
+      "SuperadminUsersListResponseDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserResponseDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SuperadminUsersMetaResponseDto"
+          }
+        },
+        "required": [
+          "users",
+          "meta"
+        ]
+      },
+      "UpdateUserRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "CLIENT",
+              "CARRIER",
+              "ADMIN",
+              "SUPERADMIN"
+            ],
+            "example": "ADMIN"
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "UpdateUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "isActive"
+        ]
+      },
+      "ResetUserPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "NewCaspXPass_123"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "SuperadminCarrierProfileItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90wkeon"
+          },
+          "userId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90user"
+          },
+          "experienceYears": {
+            "type": "number",
+            "example": 5
+          },
+          "transportType": {
+            "type": "string",
+            "example": "ROAD"
+          },
+          "description": {
+            "type": "object",
+            "nullable": true,
+            "example": "Regional carrier"
+          },
+          "isApproved": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          },
+          "vehiclesCount": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "experienceYears",
+          "transportType",
+          "description",
+          "isApproved",
+          "createdAt",
+          "updatedAt",
+          "user",
+          "vehiclesCount"
+        ]
+      },
+      "SuperadminCarriersMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 25
+          },
+          "total": {
+            "type": "number",
+            "example": 10
+          },
+          "pages": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "pages"
+        ]
+      },
+      "SuperadminCarriersListResponseDto": {
+        "type": "object",
+        "properties": {
+          "carriers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuperadminCarrierProfileItemDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SuperadminCarriersMetaDto"
+          }
+        },
+        "required": [
+          "carriers",
+          "meta"
+        ]
+      },
+      "UpdateCarrierApprovalDto": {
+        "type": "object",
+        "properties": {
+          "isApproved": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "isApproved"
+        ]
+      },
+      "SuperadminCarrierApprovalEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "carrierProfile": {
+            "$ref": "#/components/schemas/SuperadminCarrierProfileItemDto"
+          }
+        },
+        "required": [
+          "carrierProfile"
+        ]
+      },
+      "SuperadminOrderItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord"
+          },
+          "clientId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90usr"
+          },
+          "carrierId": {
+            "type": "object",
+            "example": "cmmi83qoc00000kirq90car",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "example": "Transport construction materials to Kuryk"
+          },
+          "cargoType": {
+            "type": "string",
+            "example": "CONSTRUCTION_MATERIALS"
+          },
+          "weight": {
+            "type": "number",
+            "example": 12.5
+          },
+          "volume": {
+            "type": "number",
+            "example": 42
+          },
+          "origin": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "destination": {
+            "type": "string",
+            "example": "Kuryk Port"
+          },
+          "originLat": {
+            "type": "object",
+            "example": 43.6532,
+            "nullable": true
+          },
+          "originLng": {
+            "type": "object",
+            "example": 51.1975,
+            "nullable": true
+          },
+          "destinationLat": {
+            "type": "object",
+            "example": 43.1789,
+            "nullable": true
+          },
+          "destinationLng": {
+            "type": "object",
+            "example": 51.6814,
+            "nullable": true
+          },
+          "comment": {
+            "type": "object",
+            "example": "Requires covered truck",
+            "nullable": true
+          },
+          "estimatedPrice": {
+            "type": "object",
+            "example": 180000,
+            "nullable": true
+          },
+          "estimatedDeliveryTime": {
+            "type": "object",
+            "example": 8,
+            "nullable": true
+          },
+          "estimatedCarrierSearchTime": {
+            "type": "object",
+            "example": 120,
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "SEARCHING"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "clientEmail": {
+            "type": "string",
+            "example": "client01@caspex.local"
+          },
+          "clientFirstName": {
+            "type": "string",
+            "example": "Alibi"
+          },
+          "clientLastName": {
+            "type": "string",
+            "example": "Samatov"
+          },
+          "carrierEmail": {
+            "type": "object",
+            "example": "carrier01@caspex.local",
+            "nullable": true
+          },
+          "carrierFirstName": {
+            "type": "object",
+            "example": "Miras",
+            "nullable": true
+          },
+          "carrierLastName": {
+            "type": "object",
+            "example": "Ibrayev",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "clientId",
+          "carrierId",
+          "title",
+          "cargoType",
+          "weight",
+          "volume",
+          "origin",
+          "destination",
+          "originLat",
+          "originLng",
+          "destinationLat",
+          "destinationLng",
+          "comment",
+          "estimatedPrice",
+          "estimatedDeliveryTime",
+          "estimatedCarrierSearchTime",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "clientEmail",
+          "clientFirstName",
+          "clientLastName",
+          "carrierEmail",
+          "carrierFirstName",
+          "carrierLastName"
+        ]
+      },
+      "SuperadminOrdersMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 25
+          },
+          "total": {
+            "type": "number",
+            "example": 10
+          },
+          "pages": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "pages"
+        ]
+      },
+      "SuperadminOrdersListResponseDto": {
+        "type": "object",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuperadminOrderItemDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SuperadminOrdersMetaDto"
+          }
+        },
+        "required": [
+          "orders",
+          "meta"
+        ]
+      },
+      "SuperadminOrderEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/SuperadminOrderItemDto"
+          }
+        },
+        "required": [
+          "order"
+        ]
+      },
+      "UpdateSuperadminOrderDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Transport construction materials to Kuryk"
+          },
+          "cargoType": {
+            "type": "string",
+            "example": "CONSTRUCTION_MATERIALS"
+          },
+          "weight": {
+            "type": "number",
+            "example": 12.5,
+            "minimum": 0
+          },
+          "volume": {
+            "type": "number",
+            "example": 42,
+            "minimum": 0
+          },
+          "origin": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "destination": {
+            "type": "string",
+            "example": "Kuryk Port"
+          },
+          "originLat": {
+            "type": "number",
+            "example": 43.6532,
+            "minimum": -90,
+            "maximum": 90
+          },
+          "originLng": {
+            "type": "number",
+            "example": 51.1975,
+            "minimum": -180,
+            "maximum": 180
+          },
+          "destinationLat": {
+            "type": "number",
+            "example": 43.1789,
+            "minimum": -90,
+            "maximum": 90
+          },
+          "destinationLng": {
+            "type": "number",
+            "example": 51.6814,
+            "minimum": -180,
+            "maximum": 180
+          },
+          "comment": {
+            "type": "string",
+            "example": "Requires covered truck"
+          },
+          "estimatedPrice": {
+            "type": "number",
+            "example": 180000,
+            "minimum": 0
+          },
+          "estimatedDeliveryTime": {
+            "type": "number",
+            "example": 8,
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "estimatedCarrierSearchTime": {
+            "type": "number",
+            "example": 120,
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NEW",
+              "SEARCHING",
+              "ASSIGNED",
+              "IN_TRANSIT",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "ASSIGNED"
+          },
+          "carrierId": {
+            "type": "object",
+            "example": "cmmi83qoc00000kirq90car",
+            "nullable": true
+          }
+        }
+      },
+      "SuperadminVehicleItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90veh"
+          },
+          "carrierId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90car"
+          },
+          "type": {
+            "type": "string",
+            "example": "TRUCK"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Volvo"
+          },
+          "model": {
+            "type": "string",
+            "example": "FH16"
+          },
+          "year": {
+            "type": "number",
+            "example": 2021
+          },
+          "plateNumber": {
+            "type": "string",
+            "example": "123ABC12"
+          },
+          "capacityTons": {
+            "type": "number",
+            "example": 20
+          },
+          "cargoVolume": {
+            "type": "number",
+            "example": 86
+          },
+          "vehicleImageUrl": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://example.com/vehicle.jpg"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "carrierEmail": {
+            "type": "object",
+            "example": "client01@caspex.local",
+            "nullable": true
+          },
+          "carrierFirstName": {
+            "type": "object",
+            "example": "Alibi",
+            "nullable": true
+          },
+          "carrierLastName": {
+            "type": "object",
+            "example": "Samatov",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "carrierId",
+          "type",
+          "brand",
+          "model",
+          "year",
+          "plateNumber",
+          "capacityTons",
+          "cargoVolume",
+          "vehicleImageUrl",
+          "createdAt",
+          "updatedAt",
+          "carrierEmail",
+          "carrierFirstName",
+          "carrierLastName"
+        ]
+      },
+      "SuperadminVehiclesMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 25
+          },
+          "total": {
+            "type": "number",
+            "example": 10
+          },
+          "pages": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "pages"
+        ]
+      },
+      "SuperadminVehiclesListResponseDto": {
+        "type": "object",
+        "properties": {
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuperadminVehicleItemDto"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/SuperadminVehiclesMetaDto"
+          }
+        },
+        "required": [
+          "vehicles",
+          "meta"
+        ]
+      },
+      "CreateVehicleDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "TRUCK"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Volvo"
+          },
+          "model": {
+            "type": "string",
+            "example": "FH16"
+          },
+          "year": {
+            "type": "number",
+            "example": 2021,
+            "minimum": 1950,
+            "maximum": 2100
+          },
+          "plateNumber": {
+            "type": "string",
+            "example": "123ABC12"
+          },
+          "capacityTons": {
+            "type": "number",
+            "example": 20,
+            "minimum": 0
+          },
+          "cargoVolume": {
+            "type": "number",
+            "example": 86,
+            "minimum": 0
+          },
+          "vehicleImageUrl": {
+            "type": "string",
+            "example": "https://example.com/vehicle.jpg"
+          }
+        },
+        "required": [
+          "type",
+          "brand",
+          "model",
+          "year",
+          "plateNumber",
+          "capacityTons",
+          "cargoVolume"
+        ]
+      },
+      "VehicleResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90veh"
+          },
+          "carrierId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90car"
+          },
+          "type": {
+            "type": "string",
+            "example": "TRUCK"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Volvo"
+          },
+          "model": {
+            "type": "string",
+            "example": "FH16"
+          },
+          "year": {
+            "type": "number",
+            "example": 2021
+          },
+          "plateNumber": {
+            "type": "string",
+            "example": "123ABC12"
+          },
+          "capacityTons": {
+            "type": "number",
+            "example": 20
+          },
+          "cargoVolume": {
+            "type": "number",
+            "example": 86
+          },
+          "vehicleImageUrl": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://example.com/vehicle.jpg"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-06-11T04:18:44.902Z"
+          }
+        },
+        "required": [
+          "id",
+          "carrierId",
+          "type",
+          "brand",
+          "model",
+          "year",
+          "plateNumber",
+          "capacityTons",
+          "cargoVolume",
+          "vehicleImageUrl",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "VehicleEnvelopeResponseDto": {
+        "type": "object",
+        "properties": {
+          "vehicle": {
+            "$ref": "#/components/schemas/VehicleResponseDto"
+          }
+        },
+        "required": [
+          "vehicle"
+        ]
+      },
+      "VehiclesListResponseDto": {
+        "type": "object",
+        "properties": {
+          "vehicles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VehicleResponseDto"
+            }
+          }
+        },
+        "required": [
+          "vehicles"
+        ]
+      },
+      "UpdateVehicleDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "TRUCK"
+          },
+          "brand": {
+            "type": "string",
+            "example": "Volvo"
+          },
+          "model": {
+            "type": "string",
+            "example": "FH16"
+          },
+          "year": {
+            "type": "number",
+            "example": 2021,
+            "minimum": 1950,
+            "maximum": 2100
+          },
+          "plateNumber": {
+            "type": "string",
+            "example": "123ABC12"
+          },
+          "capacityTons": {
+            "type": "number",
+            "example": 20,
+            "minimum": 0
+          },
+          "cargoVolume": {
+            "type": "number",
+            "example": 86,
+            "minimum": 0
+          },
+          "vehicleImageUrl": {
+            "type": "string",
+            "example": "https://example.com/vehicle.jpg"
+          }
+        }
+      }
+    }
+  }
+}

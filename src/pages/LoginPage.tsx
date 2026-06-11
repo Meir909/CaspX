@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store'
 export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
-  const { mutate, isPending } = useLogin()
+  const { mutate, isPending, error } = useLogin()
   const [email, setEmail] = useState('alisher@caspx.kz')
   const [password, setPassword] = useState('12345678')
 
@@ -60,6 +60,7 @@ export default function LoginPage() {
               {isPending ? 'Входим...' : 'Войти'}
               {!isPending ? <ArrowRight size={16} className="ml-2" /> : null}
             </Button>
+            {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error.message}</div> : null}
           </form>
 
           <div className="mt-5 space-y-2 text-center text-sm text-text-secondary">

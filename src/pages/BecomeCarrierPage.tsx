@@ -23,7 +23,7 @@ export default function BecomeCarrierPage() {
     transportType: 'Тентовый',
     transportImage: '',
   })
-  const { mutate, isPending } = useBecomeCarrier()
+  const { mutate, isPending, error: requestError } = useBecomeCarrier()
 
   if (submitted) {
     return (
@@ -132,6 +132,7 @@ export default function BecomeCarrierPage() {
       </SectionCard>
 
       {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error}</div> : null}
+      {requestError ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{requestError.message}</div> : null}
 
       <Button className="w-full" type="submit" disabled={isPending}>
         {isPending ? 'Отправка...' : 'Отправить на модерацию'}

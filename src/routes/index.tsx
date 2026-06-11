@@ -39,7 +39,17 @@ function ProtectedRoute({
   requiredRole?: 'guest' | 'user' | 'carrier' | 'admin' | 'akimat'
   allowApprovedCarrier?: boolean
 }) {
-  const { user, isAuthenticated } = useAuthStore()
+  const { user, isAuthenticated, isReady } = useAuthStore()
+
+  if (!isReady) {
+    return (
+      <div className="mx-auto flex min-h-[50vh] max-w-[430px] items-center justify-center px-4">
+        <div className="w-full rounded-[28px] border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-text-secondary">
+          Восстанавливаем сессию...
+        </div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
@@ -57,7 +67,17 @@ function ProtectedRoute({
 }
 
 function GuestRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, isReady } = useAuthStore()
+
+  if (!isReady) {
+    return (
+      <div className="mx-auto flex min-h-[50vh] max-w-[430px] items-center justify-center px-4">
+        <div className="w-full rounded-[28px] border border-white/10 bg-white/[0.03] p-6 text-center text-sm text-text-secondary">
+          Проверяем доступ...
+        </div>
+      </div>
+    )
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />

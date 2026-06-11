@@ -11,7 +11,7 @@ import { useAuthStore } from '@/store'
 export default function RegisterPage() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
-  const { mutate, isPending } = useRegister()
+  const { mutate, isPending, error } = useRegister()
   const [formData, setFormData] = useState({
     name: 'Алишер А.',
     email: 'alisher@caspx.kz',
@@ -61,6 +61,7 @@ export default function RegisterPage() {
               {isPending ? 'Создаем...' : 'Зарегистрироваться'}
               {!isPending ? <ArrowRight size={16} className="ml-2" /> : null}
             </Button>
+            {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error.message}</div> : null}
           </form>
 
           <div className="mt-5 text-center text-sm text-text-secondary">

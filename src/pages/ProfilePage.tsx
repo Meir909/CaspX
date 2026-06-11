@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageIntro, ProfileRow, SectionCard, UserAvatar } from '@/components/app/primitives'
 import { profileMenu } from '@/data/mock'
+import { useLogout } from '@/hooks'
 import { cropAndResizeImage } from '@/lib/utils'
 import { useAuthStore } from '@/store'
 
 export default function ProfilePage() {
   const navigate = useNavigate()
   const { user, logout, switchRole, updateProfile } = useAuthStore()
+  const { mutate: logoutRequest, isPending: isLoggingOut } = useLogout()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -80,16 +82,32 @@ export default function ProfilePage() {
         <SectionCard title="Редактирование профиля">
           <div className="space-y-3">
             <Field label="Имя" icon={<UserRoundCog size={16} />}>
-              <Input className="pl-10" value={formData.name} onChange={(event) => setFormData((prev) => ({ ...prev, name: event.target.value }))} />
+              <Input
+                className="pl-10"
+                value={formData.name}
+                onChange={(event) => setFormData((prev) => ({ ...prev, name: event.target.value }))}
+              />
             </Field>
             <Field label="Компания" icon={<Building2 size={16} />}>
-              <Input className="pl-10" value={formData.company} onChange={(event) => setFormData((prev) => ({ ...prev, company: event.target.value }))} />
+              <Input
+                className="pl-10"
+                value={formData.company}
+                onChange={(event) => setFormData((prev) => ({ ...prev, company: event.target.value }))}
+              />
             </Field>
             <Field label="Email" icon={<AtSign size={16} />}>
-              <Input className="pl-10" value={formData.email} onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))} />
+              <Input
+                className="pl-10"
+                value={formData.email}
+                onChange={(event) => setFormData((prev) => ({ ...prev, email: event.target.value }))}
+              />
             </Field>
             <Field label="Телефон" icon={<PhoneCall size={16} />}>
-              <Input className="pl-10" value={formData.phone} onChange={(event) => setFormData((prev) => ({ ...prev, phone: event.target.value }))} />
+              <Input
+                className="pl-10"
+                value={formData.phone}
+                onChange={(event) => setFormData((prev) => ({ ...prev, phone: event.target.value }))}
+              />
             </Field>
             <Button
               className="w-full"
@@ -113,7 +131,11 @@ export default function ProfilePage() {
           <Button variant={user?.role === 'carrier' ? 'default' : 'secondary'} onClick={() => switchRole('carrier')}>
             Перевозчик
           </Button>
-          <Button variant={user?.role === 'akimat' ? 'default' : 'secondary'} onClick={() => switchRole('akimat')} className="col-span-2">
+          <Button
+            variant={user?.role === 'akimat' ? 'default' : 'secondary'}
+            onClick={() => switchRole('akimat')}
+            className="col-span-2"
+          >
             Аналитика акимата
           </Button>
         </div>
@@ -135,8 +157,20 @@ export default function ProfilePage() {
         </div>
       </SectionCard>
 
-      <Button variant="destructive" className="w-full" onClick={logout}>
-        Выйти из аккаунта
+      <Button
+        variant="destructive"
+        className="w-full"
+        disabled={isLoggingOut}
+        onClick={() => {
+          logoutRequest(undefined, {
+            onSettled: () => {
+              logout()
+              navigate('/login')
+            },
+          })
+        }}
+      >
+        {isLoggingOut ? 'Выходим...' : 'Выйти из аккаунта'}
       </Button>
     </div>
   )
