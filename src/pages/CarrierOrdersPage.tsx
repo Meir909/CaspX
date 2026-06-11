@@ -3,12 +3,11 @@ import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
 import { formatMoney } from '@/data/mock'
-import { useOrders } from '@/hooks'
+import { useAvailableOrders } from '@/hooks'
 
 export default function CarrierOrdersPage() {
-  const ordersQuery = useOrders()
-  const orders = ordersQuery.data ?? []
-  const availableOrders = orders.filter((order) => order.status === 'searching')
+  const ordersQuery = useAvailableOrders()
+  const availableOrders = ordersQuery.data ?? []
 
   return (
     <div className="space-y-4">
@@ -30,7 +29,7 @@ export default function CarrierOrdersPage() {
                     {order.from} → {order.to}
                   </div>
                   <div className="mt-1 text-sm text-text-secondary">
-                    {order.weight} т • {order.volume} м³ • {order.transportType}
+                    {order.weight} т • {order.volume} м3 • {order.cargoType}
                   </div>
                 </div>
                 <Badge variant="warning">Новый</Badge>

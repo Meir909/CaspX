@@ -2,37 +2,53 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard, StatCard, TruckIllustration } from '@/components/app/primitives'
-import { formatMoney, vehicles } from '@/data/mock'
-import { useOrders } from '@/hooks'
+import { formatMoney } from '@/data/mock'
+import { useAvailableOrders, useCarrierProfile, useCarrierVehicles, useOrders } from '@/hooks'
 
 export default function CarrierDashboardPage() {
   const navigate = useNavigate()
   const ordersQuery = useOrders()
-  const orders = ordersQuery.data ?? []
+  const availableOrdersQuery = useAvailableOrders()
+  const profileQuery = useCarrierProfile()
+  const vehiclesQuery = useCarrierVehicles()
 
-  const availableOrders = orders.filter((order) => order.status === 'searching').slice(0, 3)
+  const orders = ordersQuery.data ?? []
+  const availableOrders = availableOrdersQuery.data ?? []
+  const vehicles = vehiclesQuery.data ?? []
+  const profile = profileQuery.data
+  const activeOrders = orders.filter((order) => order.status === 'assigned' || order.status === 'in_progress')
 
   return (
     <div className="space-y-4">
-      <PageIntro title="Caspian Logistics" subtitle="Перевозчик • рейтинг 4.8" />
+      <PageIntro
+        title={profile?.user?.company || profile?.user?.name || 'Кабинет перевозчика'}
+        subtitle={profile?.isApproved ? 'Перевозчик • подтвержден' : 'Перевозчик • на проверке'}
+      />
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard value="8" label="активных заказов" delta="+2" tone="blue" />
-        <StatCard value="156" label="выполнено" delta="+12" tone="green" />
-        <StatCard value="4.8" label="рейтинг" delta="стабильно" tone="amber" />
-        <StatCard value="12 450 000 ₸" label="доход за месяц" delta="+18%" tone="violet" />
+        <StatCard value={String(activeOrders.length)} label="активных заказов" delta={`+${availableOrders.length}`} tone="blue" />
+        <StatCard value={String(vehicles.length || profile?.vehiclesCount || 0)} label="техники в системе" delta="+0" tone="green" />
+        <StatCard value={String(profile?.experienceYears ?? 0)} label="лет опыта" delta={profile?.transportType || 'ROAD'} tone="amber" />
+        <StatCard value={String(availableOrders.length)} label="доступных заявок" delta="live" tone="violet" />
       </div>
 
-      <SectionCard title="Активные заказы" action={<button type="button" onClick={() => navigate('/carrier/orders')} className="text-sm text-primary">Смотреть все</button>}>
+      <SectionCard
+        title="Активные заказы"
+        action={
+          <button type="button" onClick={() => navigate('/carrier/orders')} className="text-sm text-primary">
+            Смотреть все
+          </button>
+        }
+      >
         {ordersQuery.isLoading ? (
           <LoadingList count={2} />
         ) : ordersQuery.isError ? (
           <ErrorState onRetry={() => void ordersQuery.refetch()} />
-        ) : availableOrders.length === 0 ? (
-          <EmptyState title="Активных заказов нет" description="Новые заявки появятся здесь, когда заказчики создадут маршруты." />
+        ) : activeOrders.length === 0 ? (
+          <EmptyState title="Активных заказов нет" description="Новые заявки появятся здесь, когда backend начнет возвращать заказы перевозчика." />
         ) : (
           <div className="space-y-3">
-            {availableOrders.map((order) => (
+            {activeOrders.slice(0, 3).map((order) => (
               <div key={order.id} className="rounded-2xl bg-white/[0.03] px-4 py-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -41,7 +57,9 @@ export default function CarrierDashboardPage() {
                       {order.from} → {order.to}
                     </div>
                   </div>
-                  <span className="text-sm text-primary">В пути</span>
+                  <span className="text-sm text-primary">
+                    {order.status === 'in_progress' ? 'В пути' : 'Подтвержден'}
+                  </span>
                 </div>
                 <div className="mt-3 text-sm text-text-secondary">{formatMoney(order.price)}</div>
               </div>
@@ -50,21 +68,42 @@ export default function CarrierDashboardPage() {
         )}
       </SectionCard>
 
-      <SectionCard title="Мой автопарк" action={<button type="button" onClick={() => navigate('/carrier/transport')} className="text-sm text-primary">Смотреть все</button>}>
-        <div className="space-y-3">
-          {vehicles.slice(0, 2).map((vehicle) => (
-            <div key={vehicle.id} className="grid grid-cols-[1fr_92px] items-center gap-3 rounded-2xl bg-white/[0.03] px-4 py-3">
-              <div>
-                <div className="font-medium">{vehicle.type}</div>
-                <div className="mt-1 text-sm text-text-secondary">
-                  {vehicle.plate} • {vehicle.capacity} • {vehicle.volume}
+      <SectionCard
+        title="Мой автопарк"
+        action={
+          <button type="button" onClick={() => navigate('/carrier/transport')} className="text-sm text-primary">
+            Смотреть все
+          </button>
+        }
+      >
+        {vehiclesQuery.isLoading ? (
+          <LoadingList count={2} />
+        ) : vehiclesQuery.isError ? (
+          <ErrorState onRetry={() => void vehiclesQuery.refetch()} />
+        ) : vehicles.length === 0 ? (
+          <EmptyState title="Транспорт не найден" description="Когда backend вернет список машин перевозчика, они появятся в этом блоке." />
+        ) : (
+          <div className="space-y-3">
+            {vehicles.slice(0, 2).map((vehicle) => (
+              <div key={vehicle.id} className="grid grid-cols-[1fr_92px] items-center gap-3 rounded-2xl bg-white/[0.03] px-4 py-3">
+                <div>
+                  <div className="font-medium">{vehicle.brand} {vehicle.model}</div>
+                  <div className="mt-1 text-sm text-text-secondary">
+                    {vehicle.plateNumber} • {vehicle.capacityTons} т • {vehicle.cargoVolume} м3
+                  </div>
+                  <div className="mt-1 text-sm text-emerald-300">{vehicle.year}</div>
                 </div>
-                <div className="mt-1 text-sm text-emerald-300">{vehicle.location}</div>
+                {vehicle.vehicleImageUrl ? (
+                  <div className="overflow-hidden rounded-[20px] border border-white/5 bg-white/[0.03]">
+                    <img src={vehicle.vehicleImageUrl} alt={vehicle.plateNumber} className="h-20 w-24 object-cover" />
+                  </div>
+                ) : (
+                  <TruckIllustration compact />
+                )}
               </div>
-              <TruckIllustration compact />
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </SectionCard>
 
       <Button variant="secondary" className="w-full" onClick={() => navigate('/carrier/free-transport')}>

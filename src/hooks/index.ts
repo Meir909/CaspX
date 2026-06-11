@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api'
+import { backendApi } from '@/api/backend'
 
 export const useProfile = () =>
   useQuery({
@@ -10,13 +11,13 @@ export const useProfile = () =>
 export const useOrders = () =>
   useQuery({
     queryKey: ['orders'],
-    queryFn: api.orders.getOrders,
+    queryFn: backendApi.orders.getOrders,
   })
 
 export const useOrder = (id?: string) =>
   useQuery({
     queryKey: ['orders', id],
-    queryFn: () => api.orders.getOrder(id || ''),
+    queryFn: () => backendApi.orders.getOrder(id || ''),
     enabled: Boolean(id),
   })
 
@@ -24,12 +25,30 @@ export const useCreateOrder = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: api.orders.createOrder,
+    mutationFn: backendApi.orders.createOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
     },
   })
 }
+
+export const useAvailableOrders = () =>
+  useQuery({
+    queryKey: ['orders', 'available'],
+    queryFn: backendApi.orders.getAvailableOrders,
+  })
+
+export const useCarrierProfile = () =>
+  useQuery({
+    queryKey: ['carrier', 'profile'],
+    queryFn: backendApi.carrier.getProfile,
+  })
+
+export const useCarrierVehicles = () =>
+  useQuery({
+    queryKey: ['carrier', 'vehicles'],
+    queryFn: backendApi.vehicles.getVehicles,
+  })
 
 export const useCarriers = () =>
   useQuery({

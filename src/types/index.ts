@@ -31,6 +31,41 @@ export interface Carrier {
   vehiclePlate?: string
 }
 
+export interface CarrierProfile {
+  id: string
+  userId: string
+  experienceYears: number
+  transportType: string
+  description?: string
+  isApproved: boolean
+  createdAt: string
+  updatedAt: string
+  user?: {
+    id?: string
+    name?: string
+    email?: string
+    phone?: string
+    company?: string
+    avatar?: string
+  }
+  vehiclesCount?: number
+}
+
+export interface CarrierVehicle {
+  id: string
+  carrierId: string
+  type: string
+  brand: string
+  model: string
+  year: number
+  plateNumber: string
+  capacityTons: number
+  cargoVolume: number
+  vehicleImageUrl?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Order {
   id: string
   number: string
@@ -131,4 +166,15 @@ export interface Route {
   eta: string
   risk: string
   cost: string
+}
+
+export interface CalculatedRoute {
+  routeId?: string
+  orderId?: string
+  distanceKm: number
+  durationMinutes: number
+  geometry: {
+    type: string
+    coordinates: [number, number][]
+  }
 }
