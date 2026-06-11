@@ -58,6 +58,26 @@ export interface TimelineRoute {
   status: 'active' | 'warning' | 'critical'
 }
 
+export interface LocationCountry {
+  country: string
+  cities: string[]
+}
+
+export const locationCatalog: LocationCountry[] = [
+  { country: 'Казахстан', cities: ['Актау', 'Курык', 'Астана', 'Алматы'] },
+  { country: 'Азербайджан', cities: ['Баку', 'Сумгаит', 'Гянджа'] },
+  { country: 'Турция', cities: ['Стамбул', 'Анкара', 'Измир'] },
+  { country: 'Грузия', cities: ['Тбилиси', 'Батуми', 'Поти'] },
+  { country: 'Узбекистан', cities: ['Ташкент', 'Самарканд', 'Бухара'] },
+  { country: 'Туркменистан', cities: ['Туркменбаши', 'Ашхабад', 'Туркменабад'] },
+  { country: 'Германия', cities: ['Берлин', 'Гамбург', 'Мюнхен'] },
+  { country: 'Польша', cities: ['Варшава', 'Гданьск', 'Краков'] },
+  { country: 'Италия', cities: ['Рим', 'Милан', 'Генуя'] },
+  { country: 'Нидерланды', cities: ['Роттердам', 'Амстердам', 'Гаага'] },
+]
+
+export const cargoSuggestions = ['Металл', 'Оборудование', 'Контейнеры', 'Продукты', 'Текстиль']
+
 export const appUser: User = {
   id: 'user-1',
   name: 'Алишер А.',
@@ -67,6 +87,7 @@ export const appUser: User = {
   rating: 4.8,
   company: 'TOO Caspian Logistics',
   carrierStatus: 'approved',
+  location: 'Актау, Казахстан',
 }
 
 export const carriers: Carrier[] = [
@@ -83,6 +104,7 @@ export const carriers: Carrier[] = [
     volumeLabel: '82 м³',
     badge: 'Проверен',
     phone: '+7 701 456 78 90',
+    vehiclePlate: 'KZ 123 AB 12',
   },
   {
     id: 'carrier-2',
@@ -91,12 +113,13 @@ export const carriers: Carrier[] = [
     rating: 4.6,
     experience: 6,
     price: 2200000,
-    transport: 'Тентованный',
+    transport: 'Контейнеровоз',
     etaLabel: '2-3 дня',
     capacityLabel: '20 т',
     volumeLabel: '82 м³',
     badge: 'Надежный',
     phone: '+7 777 123 00 11',
+    vehiclePlate: 'KZ 456 CD 13',
   },
   {
     id: 'carrier-3',
@@ -111,6 +134,7 @@ export const carriers: Carrier[] = [
     volumeLabel: '75 м³',
     badge: 'Популярный',
     phone: '+7 702 111 22 33',
+    vehiclePlate: 'KZ 789 GH 56',
   },
   {
     id: 'carrier-4',
@@ -125,6 +149,7 @@ export const carriers: Carrier[] = [
     volumeLabel: '82 м³',
     badge: 'Проверен',
     phone: '+7 701 222 33 44',
+    vehiclePlate: 'KZ 159 EF 02',
   },
 ]
 
@@ -133,24 +158,26 @@ export const orders: Order[] = [
     id: '240615-001',
     number: '240615-001',
     from: 'Актау',
+    fromCountry: 'Казахстан',
     fromRegion: 'Мангистауская область',
     to: 'Баку',
+    toCountry: 'Азербайджан',
     toRegion: 'Азербайджан',
     cargoType: 'Металл',
     weight: 40,
     volume: 82,
     places: 20,
-    pickupDate: '2024-06-15T10:30:00.000Z',
-    deliveryDate: '2024-06-18T18:00:00.000Z',
+    pickupDate: '2026-06-15',
+    deliveryDate: '2026-06-18T18:00:00.000Z',
     price: 2150000,
     status: 'in_progress',
-    createdAt: '2024-06-15T10:30:00.000Z',
+    createdAt: '2026-06-15T10:30:00.000Z',
     transportType: 'Тентовый',
     requirements: ['Требуется погрузка', 'Контроль пломбы'],
     carrierId: 'carrier-1',
     notes: 'Загрузка до 12:00. Документы готовы.',
     routeStops: [
-      { title: 'Актау', subtitle: 'Мангистауская область', color: 'blue' },
+      { title: 'Актау', subtitle: 'Казахстан', color: 'blue' },
       { title: 'Курык', subtitle: 'Промежуточная точка', color: 'amber' },
       { title: 'Баку', subtitle: 'Азербайджан', color: 'violet' },
     ],
@@ -162,29 +189,32 @@ export const orders: Order[] = [
     progressLabel: '320 км',
     remainingLabel: '420 км',
     speedLabel: '72 км/ч',
+    cargoImages: [],
   },
   {
     id: '240610-045',
     number: '240610-045',
     from: 'Актау',
+    fromCountry: 'Казахстан',
     fromRegion: 'Мангистауская область',
     to: 'Туркменбаши',
+    toCountry: 'Туркменистан',
     toRegion: 'Туркменистан',
     cargoType: 'Контейнеры',
     weight: 20,
     volume: 60,
     places: 12,
-    pickupDate: '2024-06-12T08:00:00.000Z',
-    deliveryDate: '2024-06-17T18:00:00.000Z',
+    pickupDate: '2026-06-12',
+    deliveryDate: '2026-06-17T18:00:00.000Z',
     price: 1250000,
     status: 'searching',
-    createdAt: '2024-06-10T08:00:00.000Z',
+    createdAt: '2026-06-10T08:00:00.000Z',
     transportType: 'Контейнеровоз',
     requirements: ['Требуется кран'],
     carrierId: 'carrier-2',
     notes: 'Подача машины утром.',
     routeStops: [
-      { title: 'Актау', subtitle: 'Мангистауская область', color: 'blue' },
+      { title: 'Актау', subtitle: 'Казахстан', color: 'blue' },
       { title: 'Курык', subtitle: 'Порт', color: 'amber' },
       { title: 'Туркменбаши', subtitle: 'Туркменистан', color: 'green' },
     ],
@@ -195,29 +225,32 @@ export const orders: Order[] = [
     progressLabel: '0 км',
     remainingLabel: '580 км',
     speedLabel: 'Ожидание',
+    cargoImages: [],
   },
   {
     id: '240630-018',
     number: '240630-018',
     from: 'Курык',
+    fromCountry: 'Казахстан',
     fromRegion: 'Мангистауская область',
     to: 'Баку',
+    toCountry: 'Азербайджан',
     toRegion: 'Азербайджан',
     cargoType: 'Продукты',
     weight: 18,
     volume: 75,
     places: 14,
-    pickupDate: '2024-06-30T07:00:00.000Z',
-    deliveryDate: '2024-07-02T16:00:00.000Z',
+    pickupDate: '2026-06-30',
+    deliveryDate: '2026-07-02T16:00:00.000Z',
     price: 950000,
     status: 'delivered',
-    createdAt: '2024-06-30T07:00:00.000Z',
+    createdAt: '2026-06-30T07:00:00.000Z',
     transportType: 'Рефрижератор',
     requirements: ['Температурный режим'],
     carrierId: 'carrier-3',
     notes: 'Без отклонений.',
     routeStops: [
-      { title: 'Курык', subtitle: 'Порт', color: 'amber' },
+      { title: 'Курык', subtitle: 'Казахстан', color: 'amber' },
       { title: 'Баку', subtitle: 'Азербайджан', color: 'green' },
     ],
     trackingEvents: [
@@ -228,37 +261,7 @@ export const orders: Order[] = [
     progressLabel: '430 км',
     remainingLabel: '0 км',
     speedLabel: 'Завершен',
-  },
-  {
-    id: '240605-009',
-    number: '240605-009',
-    from: 'Актау',
-    fromRegion: 'Мангистауская область',
-    to: 'Астрахань',
-    toRegion: 'Россия',
-    cargoType: 'Оборудование',
-    weight: 35,
-    volume: 70,
-    places: 16,
-    pickupDate: '2024-06-05T08:00:00.000Z',
-    deliveryDate: '2024-06-08T21:00:00.000Z',
-    price: 1100000,
-    status: 'cancelled',
-    createdAt: '2024-06-05T08:00:00.000Z',
-    transportType: 'Тентовый',
-    requirements: ['Крепеж'],
-    notes: 'Отменен заказчиком.',
-    routeStops: [
-      { title: 'Актау', subtitle: 'Мангистауская область', color: 'blue' },
-      { title: 'Астрахань', subtitle: 'Россия', color: 'red' },
-    ],
-    trackingEvents: [
-      { time: '05 июн 09:00', title: 'Создан заказ', location: 'Актау' },
-      { time: '05 июн 15:20', title: 'Отменен', location: 'CaspX' },
-    ],
-    progressLabel: '0 км',
-    remainingLabel: '900 км',
-    speedLabel: 'Отменен',
+    cargoImages: [],
   },
 ]
 
@@ -341,7 +344,7 @@ export const notifications: Notification[] = [
     title: 'Найден перевозчик',
     message: 'Caspian Logistics подтвердил готовность взять ваш заказ №240615-001.',
     read: false,
-    createdAt: '2024-06-15T10:45:00.000Z',
+    createdAt: '2026-06-15T10:45:00.000Z',
   },
   {
     id: 'notification-2',
@@ -349,7 +352,7 @@ export const notifications: Notification[] = [
     title: 'Обновление маршрута',
     message: 'Заказ №240615-001 вошел в фазу перевозки по морскому участку.',
     read: false,
-    createdAt: '2024-06-15T11:30:00.000Z',
+    createdAt: '2026-06-15T11:30:00.000Z',
   },
   {
     id: 'notification-3',
@@ -357,7 +360,7 @@ export const notifications: Notification[] = [
     title: 'Новое сообщение',
     message: 'AI Assistant подготовил сводку по пропускной способности КПП Курык.',
     read: true,
-    createdAt: '2024-06-15T09:10:00.000Z',
+    createdAt: '2026-06-15T09:10:00.000Z',
   },
 ]
 
@@ -388,13 +391,13 @@ export const initialMessages: Record<string, Message[]> = {
       id: 'message-1',
       senderId: 'carrier-1',
       text: 'Здравствуйте! Мы можем забрать груз сегодня после 18:00.',
-      createdAt: '2024-06-15T10:30:00.000Z',
+      createdAt: '2026-06-15T10:30:00.000Z',
     },
     {
       id: 'message-2',
       senderId: 'user-1',
       text: 'Отлично, подтвердите время подачи на терминал.',
-      createdAt: '2024-06-15T10:31:00.000Z',
+      createdAt: '2026-06-15T10:31:00.000Z',
     },
   ],
   'chat-2': [
@@ -402,19 +405,19 @@ export const initialMessages: Record<string, Message[]> = {
       id: 'message-3',
       senderId: 'ai-assistant',
       text: 'Здравствуйте! Я ваш AI-помощник по логистике. Чем могу помочь?',
-      createdAt: '2024-06-15T10:29:00.000Z',
+      createdAt: '2026-06-15T10:29:00.000Z',
     },
     {
       id: 'message-4',
       senderId: 'user-1',
       text: 'Какой маршрут быстрее из Актау в Баку?',
-      createdAt: '2024-06-15T10:30:00.000Z',
+      createdAt: '2026-06-15T10:30:00.000Z',
     },
     {
       id: 'message-5',
       senderId: 'ai-assistant',
       text: 'Оптимальный маршрут: Актау -> Курык -> Баку. Расстояние 740 км, время в пути 12 часов.',
-      createdAt: '2024-06-15T10:31:00.000Z',
+      createdAt: '2026-06-15T10:31:00.000Z',
     },
   ],
 }

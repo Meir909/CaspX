@@ -10,6 +10,7 @@ export interface User {
   company?: string
   avatar?: string
   carrierStatus?: 'pending' | 'approved' | 'rejected'
+  location?: string
 }
 
 export interface Carrier {
@@ -26,14 +27,18 @@ export interface Carrier {
   volumeLabel?: string
   badge?: string
   phone?: string
+  transportImage?: string
+  vehiclePlate?: string
 }
 
 export interface Order {
   id: string
   number: string
   from: string
+  fromCountry?: string
   fromRegion?: string
   to: string
+  toCountry?: string
   toRegion?: string
   cargoType: string
   weight: number
@@ -59,6 +64,7 @@ export interface Order {
     title: string
     location: string
   }>
+  cargoImages?: string[]
   progressLabel?: string
   remainingLabel?: string
   speedLabel?: string

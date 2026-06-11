@@ -34,6 +34,12 @@ export default function OrderDetailsPage() {
             <span>{new Date(order.deliveryDate).toLocaleString('ru-RU')}</span>
           </div>
           <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
+            <span className="text-text-secondary">Маршрут</span>
+            <span>
+              {order.fromCountry}, {order.from} → {order.toCountry}, {order.to}
+            </span>
+          </div>
+          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
             <span className="text-text-secondary">Тип груза</span>
             <span>{order.cargoType}</span>
           </div>
@@ -55,6 +61,18 @@ export default function OrderDetailsPage() {
           </div>
         </div>
       </SectionCard>
+
+      {order.cargoImages?.length ? (
+        <SectionCard title="Фото товара">
+          <div className="grid grid-cols-3 gap-3">
+            {order.cargoImages.map((image, index) => (
+              <div key={`${index}-${image.slice(0, 20)}`} className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
+                <img src={image} alt={`cargo-${index + 1}`} className="h-24 w-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      ) : null}
 
       {carrier ? (
         <SectionCard title="Перевозчик">

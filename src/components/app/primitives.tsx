@@ -14,6 +14,32 @@ export function AppLogo() {
   )
 }
 
+export function UserAvatar({
+  name,
+  avatar,
+  size = 'md',
+}: {
+  name?: string
+  avatar?: string
+  size?: 'sm' | 'md' | 'lg'
+}) {
+  const sizeClasses = {
+    sm: 'h-10 w-10 text-sm',
+    md: 'h-12 w-12 text-base',
+    lg: 'h-16 w-16 text-2xl',
+  }
+
+  if (avatar) {
+    return <img src={avatar} alt={name || 'avatar'} className={cn('rounded-[20px] object-cover', sizeClasses[size])} />
+  }
+
+  return (
+    <div className={cn('flex items-center justify-center rounded-[20px] bg-primary/20 font-semibold text-primary', sizeClasses[size])}>
+      {name?.charAt(0).toUpperCase() || 'U'}
+    </div>
+  )
+}
+
 export function PageIntro({
   title,
   subtitle,

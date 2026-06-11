@@ -18,7 +18,6 @@ import {
   carriers as seedCarriers,
   chats as seedChats,
   checkpointLoads,
-  getCarrierById,
   notifications as seedNotifications,
   orders as seedOrders,
   portLoads,
@@ -38,13 +37,13 @@ let messagesDb: Record<string, Message[]> = {
       id: 'message-1',
       senderId: 'carrier-1',
       text: 'Здравствуйте! Мы можем забрать груз сегодня после 18:00.',
-      createdAt: '2024-06-15T10:30:00.000Z',
+      createdAt: '2026-06-15T10:30:00.000Z',
     },
     {
       id: 'message-2',
       senderId: 'user-1',
       text: 'Отлично, подтвердите время подачи на терминал.',
-      createdAt: '2024-06-15T10:31:00.000Z',
+      createdAt: '2026-06-15T10:31:00.000Z',
     },
   ],
   'chat-2': [
@@ -52,19 +51,19 @@ let messagesDb: Record<string, Message[]> = {
       id: 'message-3',
       senderId: 'ai-assistant',
       text: 'Здравствуйте! Я ваш AI-помощник по логистике. Чем могу помочь?',
-      createdAt: '2024-06-15T10:29:00.000Z',
+      createdAt: '2026-06-15T10:29:00.000Z',
     },
     {
       id: 'message-4',
       senderId: 'user-1',
       text: 'Какой маршрут быстрее из Актау в Баку?',
-      createdAt: '2024-06-15T10:30:00.000Z',
+      createdAt: '2026-06-15T10:30:00.000Z',
     },
     {
       id: 'message-5',
       senderId: 'ai-assistant',
       text: 'Оптимальный маршрут: Актау -> Курык -> Баку. Расстояние 740 км, время в пути 12 часов.',
-      createdAt: '2024-06-15T10:31:00.000Z',
+      createdAt: '2026-06-15T10:31:00.000Z',
     },
   ],
 }
@@ -103,6 +102,29 @@ const trucksDb: Truck[] = [
   { id: 'truck-2', name: 'KZ 456 CD 13', location: { lat: 42.95, lng: 51.74 }, status: 'В рейсе' },
 ]
 
+type CreateOrderPayload = Partial<Order> & {
+  from: string
+  to: string
+  fromCountry?: string
+  toCountry?: string
+  cargoType: string
+  weight: string | number
+  volume: string | number
+  date: string
+}
+
+type BecomeCarrierPayload = {
+  company?: string
+  businessId?: string
+  direction?: string
+  capacity?: string
+  experience?: string
+  volume?: string
+  plate?: string
+  transportType?: string
+  transportImage?: string
+}
+
 export const api = {
   auth: {
     login: async (email: string, _password: string): Promise<User> => {
@@ -127,9 +149,38 @@ export const api = {
       await delay(200)
       return currentUser
     },
-    becomeCarrier: async (_data: Record<string, unknown>): Promise<User> => {
+    becomeCarrier: async (data: BecomeCarrierPayload): Promise<User> => {
       await delay(600)
-      currentUser = { ...currentUser, carrierStatus: 'pending' }
+
+      currentUser = {
+        ...currentUser,
+        company: data.company || currentUser.company,
+        carrierStatus: 'approved',
+      }
+
+      const carrierId = currentUser.id
+      const newCarrier: Carrier = {
+        id: carrierId,
+        name: currentUser.name,
+        company: data.company || currentUser.company,
+        rating: currentUser.rating || 4.7,
+        experience: Number.parseInt(data.experience || '3', 10),
+        price: 2100000,
+        transport: data.transportType || 'Тентовый',
+        etaLabel: '2-4 дня',
+        capacityLabel: `${data.capacity || '20'} т`,
+        volumeLabel: `${data.volume || '82'} м³`,
+        badge: 'Новый',
+        phone: currentUser.phone,
+        transportImage: data.transportImage,
+        vehiclePlate: data.plate || 'KZ 000 AA 00',
+      }
+
+      const exists = carriersDb.some((carrier) => carrier.id === carrierId)
+      carriersDb = exists
+        ? carriersDb.map((carrier) => (carrier.id === carrierId ? { ...carrier, ...newCarrier } : carrier))
+        : [newCarrier, ...carriersDb]
+
       return currentUser
     },
   },
@@ -143,16 +194,7 @@ export const api = {
       await delay(200)
       return ordersDb.find((order) => order.id === id)
     },
-    createOrder: async (
-      data: Partial<Order> & {
-        from: string
-        to: string
-        cargoType: string
-        weight: string | number
-        volume: string | number
-        date: string
-      },
-    ): Promise<Order> => {
+    createOrder: async (data: CreateOrderPayload): Promise<Order> => {
       await delay(500)
 
       const carrier = carriersDb[0]
@@ -160,9 +202,11 @@ export const api = {
         id: `${Date.now()}`,
         number: `${new Date().getFullYear()}${String(ordersDb.length + 1).padStart(3, '0')}`,
         from: data.from,
-        fromRegion: 'Мангистауская область',
+        fromCountry: data.fromCountry,
+        fromRegion: data.fromCountry,
         to: data.to,
-        toRegion: 'Азербайджан',
+        toCountry: data.toCountry,
+        toRegion: data.toCountry,
         cargoType: data.cargoType,
         weight: Number(data.weight),
         volume: Number(data.volume),
@@ -177,13 +221,14 @@ export const api = {
         requirements: data.requirements ?? [],
         notes: 'Заказ создан через CaspX.',
         carrierId: carrier.id,
+        cargoImages: data.cargoImages ?? [],
         routeStops: [
-          { title: data.from, subtitle: 'Точка отправления', color: 'blue' },
+          { title: data.from, subtitle: data.fromCountry || 'Страна отправления', color: 'blue' },
           { title: 'Курык', subtitle: 'Промежуточный порт', color: 'amber' },
-          { title: data.to, subtitle: 'Точка назначения', color: 'violet' },
+          { title: data.to, subtitle: data.toCountry || 'Страна назначения', color: 'violet' },
         ],
         trackingEvents: [
-          { time: 'Сейчас', title: 'Заказ создан', location: data.from },
+          { time: 'Сейчас', title: 'Заказ создан', location: `${data.from}, ${data.fromCountry || ''}`.trim() },
           { time: 'Ожидается', title: 'Подбор перевозчика', location: 'CaspX' },
         ],
         progressLabel: '0 км',
@@ -212,7 +257,7 @@ export const api = {
     },
     getCarrier: async (id: string): Promise<Carrier | undefined> => {
       await delay(200)
-      return getCarrierById(id)
+      return carriersDb.find((carrier) => carrier.id === id)
     },
   },
 
@@ -292,9 +337,7 @@ export const api = {
       }
 
       chatsDb = chatsDb.map((chat) =>
-        chat.id === chatId
-          ? { ...chat, lastMessage: response.text, unreadCount: 0 }
-          : chat,
+        chat.id === chatId ? { ...chat, lastMessage: response.text, unreadCount: 0 } : chat,
       )
 
       return message
