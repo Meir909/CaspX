@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { ErrorState, LoadingList } from '@/components/ui/async-state'
 import { BotBubble, PageIntro, SectionCard } from '@/components/app/primitives'
 import { useAIAnalytics, useAIChat } from '@/hooks'
 
@@ -29,7 +30,8 @@ export default function AIPage() {
   ])
   const [input, setInput] = useState('')
   const { mutateAsync, isPending } = useAIChat()
-  const { data: analytics } = useAIAnalytics()
+  const analyticsQuery = useAIAnalytics()
+  const analytics = analyticsQuery.data
 
   const sendMessage = async (text: string) => {
     if (!text.trim()) return
@@ -79,20 +81,28 @@ export default function AIPage() {
       </SectionCard>
 
       <SectionCard title="Сводка загрузки">
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-2xl bg-white/[0.03] px-3 py-3">
-            <div className="text-xs text-text-secondary">Сегодня</div>
-            <div className="mt-1 text-lg font-medium">{analytics?.transit?.[analytics.transit.length - 1]?.value ?? 387}</div>
+        {analyticsQuery.isLoading ? (
+          <LoadingList count={1} />
+        ) : analyticsQuery.isError ? (
+          <ErrorState description="Не удалось получить аналитическую сводку AI." onRetry={() => void analyticsQuery.refetch()} />
+        ) : analytics ? (
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-2xl bg-white/[0.03] px-3 py-3">
+              <div className="text-xs text-text-secondary">Сегодня</div>
+              <div className="mt-1 text-lg font-medium">{analytics.transit?.[analytics.transit.length - 1]?.value ?? 387}</div>
+            </div>
+            <div className="rounded-2xl bg-white/[0.03] px-3 py-3">
+              <div className="text-xs text-text-secondary">Пик</div>
+              <div className="mt-1 text-lg font-medium">430</div>
+            </div>
+            <div className="rounded-2xl bg-white/[0.03] px-3 py-3">
+              <div className="text-xs text-text-secondary">Тренд</div>
+              <div className="mt-1 text-lg font-medium text-emerald-300">+12%</div>
+            </div>
           </div>
-          <div className="rounded-2xl bg-white/[0.03] px-3 py-3">
-            <div className="text-xs text-text-secondary">Пик</div>
-            <div className="mt-1 text-lg font-medium">430</div>
-          </div>
-          <div className="rounded-2xl bg-white/[0.03] px-3 py-3">
-            <div className="text-xs text-text-secondary">Тренд</div>
-            <div className="mt-1 text-lg font-medium text-emerald-300">+12%</div>
-          </div>
-        </div>
+        ) : (
+          <ErrorState description="Не удалось получить аналитическую сводку AI." />
+        )}
       </SectionCard>
 
       <div className="flex gap-2">

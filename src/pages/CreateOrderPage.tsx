@@ -71,7 +71,7 @@ export default function CreateOrderPage() {
       return
     }
 
-    const previews = await readFilesAsDataUrls(selectedFiles)
+    const previews = await readFilesAsDataUrls(selectedFiles, { width: 1280, height: 960, quality: 0.88 })
     setError('')
     setFormData((prev) => ({ ...prev, cargoImages: previews }))
   }

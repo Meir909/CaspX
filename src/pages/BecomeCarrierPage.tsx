@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
 import { Select } from '@/components/ui/select'
 import { useBecomeCarrier } from '@/hooks'
-import { readFileAsDataUrl } from '@/lib/utils'
+import { cropAndResizeImage } from '@/lib/utils'
 import { useAuthStore } from '@/store'
 
 export default function BecomeCarrierPage() {
@@ -114,10 +114,10 @@ export default function BecomeCarrierPage() {
             type="file"
             accept="image/*"
             className="hidden"
-            onChange={async (event) => {
-              const file = event.target.files?.[0]
-              if (!file) return
-              const preview = await readFileAsDataUrl(file)
+              onChange={async (event) => {
+                const file = event.target.files?.[0]
+                if (!file) return
+              const preview = await cropAndResizeImage(file, { width: 1280, height: 960, quality: 0.9 })
               setError('')
               setFormData((prev) => ({ ...prev, transportImage: preview }))
             }}

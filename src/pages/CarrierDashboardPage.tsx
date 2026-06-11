@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard, StatCard, TruckIllustration } from '@/components/app/primitives'
 import { formatMoney, vehicles } from '@/data/mock'
 import { useOrders } from '@/hooks'
 
 export default function CarrierDashboardPage() {
   const navigate = useNavigate()
-  const { data: orders = [] } = useOrders()
+  const ordersQuery = useOrders()
+  const orders = ordersQuery.data ?? []
 
   const availableOrders = orders.filter((order) => order.status === 'searching').slice(0, 3)
 
@@ -22,22 +24,30 @@ export default function CarrierDashboardPage() {
       </div>
 
       <SectionCard title="Активные заказы" action={<button type="button" onClick={() => navigate('/carrier/orders')} className="text-sm text-primary">Смотреть все</button>}>
-        <div className="space-y-3">
-          {availableOrders.map((order) => (
-            <div key={order.id} className="rounded-2xl bg-white/[0.03] px-4 py-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="font-medium">№{order.number}</div>
-                  <div className="mt-1 text-sm text-text-secondary">
-                    {order.from} → {order.to}
+        {ordersQuery.isLoading ? (
+          <LoadingList count={2} />
+        ) : ordersQuery.isError ? (
+          <ErrorState onRetry={() => void ordersQuery.refetch()} />
+        ) : availableOrders.length === 0 ? (
+          <EmptyState title="Активных заказов нет" description="Новые заявки появятся здесь, когда заказчики создадут маршруты." />
+        ) : (
+          <div className="space-y-3">
+            {availableOrders.map((order) => (
+              <div key={order.id} className="rounded-2xl bg-white/[0.03] px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium">№{order.number}</div>
+                    <div className="mt-1 text-sm text-text-secondary">
+                      {order.from} → {order.to}
+                    </div>
                   </div>
+                  <span className="text-sm text-primary">В пути</span>
                 </div>
-                <span className="text-sm text-primary">В пути</span>
+                <div className="mt-3 text-sm text-text-secondary">{formatMoney(order.price)}</div>
               </div>
-              <div className="mt-3 text-sm text-text-secondary">{formatMoney(order.price)}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </SectionCard>
 
       <SectionCard title="Мой автопарк" action={<button type="button" onClick={() => navigate('/carrier/transport')} className="text-sm text-primary">Смотреть все</button>}>

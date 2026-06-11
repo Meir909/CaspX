@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageIntro, ProfileRow, SectionCard, UserAvatar } from '@/components/app/primitives'
 import { profileMenu } from '@/data/mock'
-import { readFileAsDataUrl } from '@/lib/utils'
+import { cropAndResizeImage } from '@/lib/utils'
 import { useAuthStore } from '@/store'
 
 export default function ProfilePage() {
@@ -57,7 +57,7 @@ export default function ProfilePage() {
                   onChange={async (event) => {
                     const file = event.target.files?.[0]
                     if (!file) return
-                    const avatar = await readFileAsDataUrl(file)
+                    const avatar = await cropAndResizeImage(file, { width: 512, height: 512, quality: 0.9 })
                     setFormData((prev) => ({ ...prev, avatar }))
                   }}
                 />

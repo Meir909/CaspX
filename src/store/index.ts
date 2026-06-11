@@ -99,6 +99,7 @@ export const useMapStore = create<MapStore>((set) => ({
 
 interface NotificationStore {
   notifications: Notification[]
+  setNotifications: (notifications: Notification[]) => void
   addNotification: (notification: Notification) => void
   markAsRead: (id: string) => void
   markAllAsRead: () => void
@@ -106,6 +107,7 @@ interface NotificationStore {
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: seedNotifications,
+  setNotifications: (notifications) => set({ notifications }),
   addNotification: (notification) =>
     set((state) => ({ notifications: [notification, ...state.notifications] })),
   markAsRead: (id) =>

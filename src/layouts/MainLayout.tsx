@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react'
 import { AppLogo, UserAvatar } from '@/components/app/primitives'
+import { useRealtimeSystem } from '@/hooks/realtime'
 import { useAuthStore, useNotificationStore, useUIStore } from '@/store'
 import { cn } from '@/lib/utils'
 
@@ -39,6 +40,7 @@ const carrierExtraNav = [
 ]
 
 export default function MainLayout() {
+  useRealtimeSystem()
   const navigate = useNavigate()
   const location = useLocation()
   const { sidebarOpen, setSidebarOpen } = useUIStore()

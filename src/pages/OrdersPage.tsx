@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
 import { formatMoney } from '@/data/mock'
 import { useOrders } from '@/hooks'
@@ -36,7 +37,8 @@ const statusLabel: Record<string, string> = {
 
 export default function OrdersPage() {
   const navigate = useNavigate()
-  const { data: orders = [] } = useOrders()
+  const ordersQuery = useOrders()
+  const orders = ordersQuery.data ?? []
   const [tab, setTab] = useState<OrderTab>('all')
 
   const filteredOrders = useMemo(() => {
@@ -73,34 +75,46 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      <div className="space-y-3">
-        {filteredOrders.map((order, index) => (
-          <motion.div key={order.id} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04 }}>
-            <SectionCard>
-              <button type="button" onClick={() => navigate(`/orders/${order.id}`)} className="w-full text-left">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium">#{order.number}</div>
-                    <div className="mt-1 text-sm text-text-secondary">
-                      {order.from} → {order.to}
+      {ordersQuery.isLoading ? (
+        <LoadingList count={4} />
+      ) : ordersQuery.isError ? (
+        <ErrorState onRetry={() => void ordersQuery.refetch()} />
+      ) : filteredOrders.length === 0 ? (
+        <EmptyState
+          title="Заказов пока нет"
+          description="Создайте первую заявку, и она появится в этом списке."
+          action={<Button onClick={() => navigate('/create-order')}>Создать заказ</Button>}
+        />
+      ) : (
+        <div className="space-y-3">
+          {filteredOrders.map((order, index) => (
+            <motion.div key={order.id} initial={{ opacity: 0, x: 18 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.04 }}>
+              <SectionCard>
+                <button type="button" onClick={() => navigate(`/orders/${order.id}`)} className="w-full text-left">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="font-medium">#{order.number}</div>
+                      <div className="mt-1 text-sm text-text-secondary">
+                        {order.fromCountry}, {order.from} → {order.toCountry}, {order.to}
+                      </div>
                     </div>
+                    <Badge variant={statusBadge[order.status]}>{statusLabel[order.status]}</Badge>
                   </div>
-                  <Badge variant={statusBadge[order.status]}>{statusLabel[order.status]}</Badge>
-                </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-text-secondary">
-                  <div>{order.cargoType}</div>
-                  <div className="text-right">{formatMoney(order.price)}</div>
-                  <div>
-                    {order.weight} т / {order.volume} м³
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-text-secondary">
+                    <div>{order.cargoType}</div>
+                    <div className="text-right">{formatMoney(order.price)}</div>
+                    <div>
+                      {order.weight} т / {order.volume} м³
+                    </div>
+                    <div className="text-right">{new Date(order.pickupDate).toLocaleDateString('ru-RU')}</div>
                   </div>
-                  <div className="text-right">{new Date(order.pickupDate).toLocaleDateString('ru-RU')}</div>
-                </div>
-              </button>
-            </SectionCard>
-          </motion.div>
-        ))}
-      </div>
+                </button>
+              </SectionCard>
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

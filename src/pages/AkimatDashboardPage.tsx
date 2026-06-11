@@ -1,19 +1,27 @@
 import { PageIntro, SectionCard, StatCard, MapCluster } from '@/components/app/primitives'
+import { ErrorState, LoadingList } from '@/components/ui/async-state'
 import { checkpointLoads, loadMapNodes, portLoads } from '@/data/mock'
 import { useStats } from '@/hooks'
 
 export default function AkimatDashboardPage() {
-  const { data: stats } = useStats()
+  const statsQuery = useStats()
+  const stats = statsQuery.data
 
   return (
     <div className="space-y-4">
       <PageIntro title="Акимат: Аналитика" subtitle="Мониторинг грузопотока, портов и пограничных пунктов" />
 
-      <div className="grid grid-cols-3 gap-3">
-        <StatCard value={`${stats?.trucks || 387}`} label="грузовиков" delta="+8%" tone="blue" />
-        <StatCard value={`${stats?.activeCargos || 512}`} label="мин т" delta="+12%" tone="green" />
-        <StatCard value={`${stats?.avgWaitTime || '2.1 ч'}`} label="ожидание" delta="-5%" tone="amber" />
-      </div>
+      {statsQuery.isLoading ? (
+        <LoadingList count={2} />
+      ) : statsQuery.isError ? (
+        <ErrorState onRetry={() => void statsQuery.refetch()} />
+      ) : (
+        <div className="grid grid-cols-3 gap-3">
+          <StatCard value={`${stats?.trucks || 387}`} label="грузовиков" delta="+8%" tone="blue" />
+          <StatCard value={`${stats?.activeCargos || 512}`} label="мин т" delta="+12%" tone="green" />
+          <StatCard value={`${stats?.avgWaitTime || '2.1 ч'}`} label="ожидание" delta="-5%" tone="amber" />
+        </div>
+      )}
 
       <SectionCard title="Динамика грузопотока" action={<span className="text-xs text-text-secondary">7 дней</span>}>
         <div className="flex h-36 items-end gap-2">

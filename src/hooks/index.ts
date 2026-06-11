@@ -83,6 +83,12 @@ export const useChats = () =>
     queryFn: api.chat.getChats,
   })
 
+export const useNotifications = () =>
+  useQuery({
+    queryKey: ['notifications'],
+    queryFn: api.notifications.getNotifications,
+  })
+
 export const useMessages = (chatId: string) =>
   useQuery({
     queryKey: ['messages', chatId],
