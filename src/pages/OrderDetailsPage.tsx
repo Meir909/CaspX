@@ -1,8 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
-import { CarrierSummary, PageIntro, RouteTimeline, SectionCard } from '@/components/app/primitives'
-import { formatMoney, getCarrierById } from '@/data/mock'
+import { PageIntro, RouteTimeline, SectionCard } from '@/components/app/primitives'
+import { formatMoney } from '@/data/mock'
 import { useOrder } from '@/hooks'
 
 export default function OrderDetailsPage() {
@@ -77,20 +77,20 @@ export default function OrderDetailsPage() {
             </SectionCard>
           ) : null}
 
-          {(() => {
-            const carrier = getCarrierById(order.carrierId)
-            return carrier ? (
-              <SectionCard title="Перевозчик">
-                <div className="space-y-4">
-                  <CarrierSummary company={carrier.company || carrier.name} rating={carrier.rating} />
-                  <div className="text-sm text-text-secondary">Водитель: Алиев Р. • {carrier.phone}</div>
-                  <Button className="w-full" onClick={() => navigate(`/orders/${order.id}/tracking`)}>
-                    Связаться и отслеживать
-                  </Button>
+          {order.carrierId || order.carrierName || order.carrierEmail ? (
+            <SectionCard title="Перевозчик">
+              <div className="space-y-3">
+                <div className="rounded-2xl bg-white/[0.03] px-4 py-3">
+                  <div className="text-sm text-text-secondary">Назначенный перевозчик</div>
+                  <div className="mt-1 font-medium">{order.carrierName || 'Carrier assigned'}</div>
+                  {order.carrierEmail ? <div className="mt-1 text-sm text-text-secondary">{order.carrierEmail}</div> : null}
                 </div>
-              </SectionCard>
-            ) : null
-          })()}
+                <Button className="w-full" onClick={() => navigate(`/orders/${order.id}/tracking`)}>
+                  Открыть отслеживание
+                </Button>
+              </div>
+            </SectionCard>
+          ) : null}
         </>
       )}
     </div>

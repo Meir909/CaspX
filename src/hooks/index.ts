@@ -32,6 +32,20 @@ export const useCreateOrder = () => {
   })
 }
 
+export const useUpdateOrder = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof backendApi.orders.updateOrder>[1] }) =>
+      backendApi.orders.updateOrder(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', 'available'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', variables.id] })
+    },
+  })
+}
+
 export const useAvailableOrders = () =>
   useQuery({
     queryKey: ['orders', 'available'],
@@ -49,6 +63,18 @@ export const useCarrierVehicles = () =>
     queryKey: ['carrier', 'vehicles'],
     queryFn: backendApi.vehicles.getVehicles,
   })
+
+export const useCreateVehicle = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: backendApi.vehicles.createVehicle,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carrier', 'vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['carrier', 'profile'] })
+    },
+  })
+}
 
 export const useCarriers = () =>
   useQuery({

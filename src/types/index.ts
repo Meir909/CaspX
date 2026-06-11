@@ -88,6 +88,8 @@ export interface Order {
   notes?: string
   status: 'created' | 'searching' | 'assigned' | 'in_progress' | 'delivered' | 'cancelled'
   carrierId?: string
+  carrierName?: string
+  carrierEmail?: string
   createdAt: string
   routeStops?: Array<{
     title: string

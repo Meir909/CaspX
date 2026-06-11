@@ -1,8 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
-import { MapCluster, PageIntro, SectionCard, TruckIllustration } from '@/components/app/primitives'
-import { loadMapNodes } from '@/data/mock'
+import { PageIntro, RouteTimeline, SectionCard, TruckIllustration } from '@/components/app/primitives'
 import { useOrder } from '@/hooks'
 
 export default function OrderTrackingPage() {
@@ -23,19 +22,20 @@ export default function OrderTrackingPage() {
         <EmptyState title="Маршрут не найден" description="Попробуйте открыть заказ заново из списка активных заявок." />
       ) : (
         <>
-          <SectionCard
-            title={`${order.from} → ${order.to}`}
-            action={<span className="text-xs text-emerald-300">Realtime active</span>}
-          >
-            <MapCluster nodes={loadMapNodes} showLegend={false} />
+          <SectionCard title={`${order.from} → ${order.to}`} action={<span className="text-xs text-emerald-300">Live order</span>}>
+            <RouteTimeline items={order.routeStops || []} />
           </SectionCard>
 
           <SectionCard>
             <div className="grid grid-cols-[1fr_110px] items-center gap-4">
               <div>
-                <div className="text-sm text-text-secondary">Текущее местоположение</div>
-                <div className="mt-1 text-lg font-medium">На трассе А-33</div>
-                <div className="mt-1 text-sm text-text-secondary">Мангистауская область</div>
+                <div className="text-sm text-text-secondary">Текущий маршрут</div>
+                <div className="mt-1 text-lg font-medium">
+                  {order.fromCountry}, {order.from}
+                </div>
+                <div className="mt-1 text-sm text-text-secondary">
+                  Дальше маршрут идет до {order.toCountry}, {order.to}
+                </div>
               </div>
               <TruckIllustration compact />
             </div>

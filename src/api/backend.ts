@@ -14,6 +14,48 @@ type SessionTokens = {
   refreshToken: string
 }
 
+type CreateOrderInput = Partial<Order> & {
+  from: string
+  to: string
+  fromCountry?: string
+  toCountry?: string
+  cargoType: string
+  weight: string | number
+  volume: string | number
+  date: string
+  cargoImages?: string[]
+}
+
+type UpdateOrderInput = Partial<{
+  from: string
+  to: string
+  fromCountry: string
+  toCountry: string
+  cargoType: string
+  weight: string | number
+  volume: string | number
+  comment: string
+  cargoImages: string[]
+  status: Order['status']
+}>
+
+type UpsertVehicleInput = {
+  type: string
+  brand: string
+  model: string
+  year: number | string
+  plateNumber: string
+  capacityTons: number | string
+  cargoVolume: number | string
+  vehicleImageUrl?: string
+}
+
+type UpdateCarrierProfileInput = Partial<{
+  experienceYears: number | string
+  transportType: string
+  description: string
+}>
+
 class ApiRequestError extends Error {
   status: number
   payload: unknown
@@ -141,6 +183,25 @@ function toFrontendStatus(status: string): Order['status'] {
   }
 }
 
+function toBackendStatus(status: Order['status']) {
+  switch (status) {
+    case 'created':
+      return 'NEW'
+    case 'searching':
+      return 'SEARCHING'
+    case 'assigned':
+      return 'ASSIGNED'
+    case 'in_progress':
+      return 'IN_TRANSIT'
+    case 'delivered':
+      return 'DELIVERED'
+    case 'cancelled':
+      return 'CANCELLED'
+    default:
+      return 'SEARCHING'
+  }
+}
+
 function getEnvelope(payload: unknown, key: string) {
   if (!isPlainObject(payload)) return undefined
   const nested = payload[key]
@@ -264,6 +325,14 @@ function mapOrder(payload: unknown): Order {
   const fromCountry = readNullableString(data, ['originCountry']) || origin.country
   const to = readString(data, ['destinationCity'], destination.city)
   const toCountry = readNullableString(data, ['destinationCountry']) || destination.country
+  const carrierName =
+    [
+      readString(data, ['carrierFirstName']),
+      readString(data, ['carrierLastName']),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || undefined
 
   return {
     id: readString(data, ['id'], `${Date.now()}`),
@@ -287,6 +356,8 @@ function mapOrder(payload: unknown): Order {
     notes: readNullableString(data, ['title']),
     status: toFrontendStatus(readString(data, ['status'], 'SEARCHING')),
     carrierId: readNullableString(data, ['carrierId']),
+    carrierName,
+    carrierEmail: readNullableString(data, ['carrierEmail']),
     createdAt,
     routeStops: [
       { title: from, subtitle: fromCountry || 'Пункт отправки', color: 'blue' },
@@ -365,6 +436,73 @@ function mapVehiclesList(payload: unknown): CarrierVehicle[] {
   return asArray(payload.vehicles).map((item) => mapVehicle({ vehicle: item }))
 }
 
+function buildOrderPayload(data: CreateOrderInput | UpdateOrderInput) {
+  const payload: Record<string, unknown> = {}
+  const hasRoute = typeof data.from === 'string' || typeof data.to === 'string'
+
+  if (hasRoute) {
+    const originCity = typeof data.from === 'string' ? data.from : undefined
+    const destinationCity = typeof data.to === 'string' ? data.to : undefined
+    const originCountry = data.fromCountry
+    const destinationCountry = data.toCountry
+
+    if (originCity) payload.originCity = originCity
+    if (destinationCity) payload.destinationCity = destinationCity
+    if (originCountry) payload.originCountry = originCountry
+    if (destinationCountry) payload.destinationCountry = destinationCountry
+    if (originCity || originCountry) {
+      payload.origin = [originCountry, originCity].filter(Boolean).join(', ')
+    }
+    if (destinationCity || destinationCountry) {
+      payload.destination = [destinationCountry, destinationCity].filter(Boolean).join(', ')
+    }
+  }
+
+  if (typeof data.cargoType === 'string' && data.cargoType.trim()) {
+    payload.cargoType = data.cargoType.trim()
+  }
+
+  if (data.weight !== undefined) {
+    payload.weight = Number(data.weight)
+  }
+
+  if (data.volume !== undefined) {
+    payload.volume = Number(data.volume)
+  }
+
+  if (typeof data.comment === 'string') {
+    payload.comment = data.comment.trim() || undefined
+  }
+
+  if (data.cargoImages?.length) {
+    payload.cargoPhotoUrl = data.cargoImages[0]
+    payload.productPhotoUrls = data.cargoImages
+  }
+
+  if (data.status) {
+    payload.status = toBackendStatus(data.status)
+  }
+
+  if (payload.cargoType && (payload.origin || payload.destination)) {
+    payload.title = `${payload.cargoType}: ${payload.origin || ''} -> ${payload.destination || ''}`.trim()
+  }
+
+  return payload
+}
+
+function buildVehiclePayload(data: UpsertVehicleInput) {
+  return {
+    type: data.type.trim(),
+    brand: data.brand.trim(),
+    model: data.model.trim(),
+    year: Number(data.year),
+    plateNumber: data.plateNumber.trim(),
+    capacityTons: Number(data.capacityTons),
+    cargoVolume: Number(data.cargoVolume),
+    vehicleImageUrl: data.vehicleImageUrl || undefined,
+  }
+}
+
 export const backendApi = {
   orders: {
     getOrders: async () => {
@@ -402,40 +540,14 @@ export const backendApi = {
       return mapOrder(payload)
     },
 
-    createOrder: async (data: Partial<Order> & {
-      from: string
-      to: string
-      fromCountry?: string
-      toCountry?: string
-      cargoType: string
-      weight: string | number
-      volume: string | number
-      date: string
-      cargoImages?: string[]
-    }) => {
+    createOrder: async (data: CreateOrderInput) => {
       assertLiveApi()
 
-      const origin = [data.fromCountry, data.from].filter(Boolean).join(', ')
-      const destination = [data.toCountry, data.to].filter(Boolean).join(', ')
       const payload = await requestJson<unknown>(
         '/orders',
         {
           method: 'POST',
-          body: JSON.stringify({
-            title: `${data.cargoType}: ${origin} -> ${destination}`,
-            cargoType: data.cargoType,
-            weight: Number(data.weight),
-            volume: Number(data.volume),
-            origin,
-            originCity: data.from,
-            originCountry: data.fromCountry,
-            destination,
-            destinationCity: data.to,
-            destinationCountry: data.toCountry,
-            cargoPhotoUrl: data.cargoImages?.[0],
-            productPhotoUrls: data.cargoImages ?? [],
-            comment: data.comment || undefined,
-          }),
+          body: JSON.stringify(buildOrderPayload(data)),
         },
         { auth: true },
       )
@@ -454,6 +566,21 @@ export const backendApi = {
 
       return mapOrdersList(payload)
     },
+
+    updateOrder: async (id: string, data: UpdateOrderInput) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        `/orders/${id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(buildOrderPayload(data)),
+        },
+        { auth: true },
+      )
+
+      return mapOrder(payload)
+    },
   },
 
   carrier: {
@@ -463,6 +590,25 @@ export const backendApi = {
       const payload = await requestJson<unknown>(
         '/carrier/profile',
         { method: 'GET' },
+        { auth: true },
+      )
+
+      return mapCarrierProfile(payload)
+    },
+
+    updateProfile: async (data: UpdateCarrierProfileInput) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        '/carrier/profile',
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            experienceYears: data.experienceYears !== undefined ? Number(data.experienceYears) : undefined,
+            transportType: data.transportType?.trim() || undefined,
+            description: data.description?.trim() || undefined,
+          }),
+        },
         { auth: true },
       )
 
@@ -481,6 +627,45 @@ export const backendApi = {
       )
 
       return mapVehiclesList(payload)
+    },
+
+    createVehicle: async (data: UpsertVehicleInput) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        '/vehicles',
+        {
+          method: 'POST',
+          body: JSON.stringify(buildVehiclePayload(data)),
+        },
+        { auth: true },
+      )
+
+      return mapVehicle(payload)
+    },
+
+    updateVehicle: async (id: string, data: Partial<UpsertVehicleInput>) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        `/vehicles/${id}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(buildVehiclePayload({
+            type: data.type || 'TRUCK',
+            brand: data.brand || '',
+            model: data.model || '',
+            year: data.year || new Date().getFullYear(),
+            plateNumber: data.plateNumber || '',
+            capacityTons: data.capacityTons || 0,
+            cargoVolume: data.cargoVolume || 0,
+            vehicleImageUrl: data.vehicleImageUrl,
+          })),
+        },
+        { auth: true },
+      )
+
+      return mapVehicle(payload)
     },
   },
 }
