@@ -8,7 +8,9 @@ import AboutPage from '@/pages/AboutPage'
 import BecomeCarrierPage from '@/pages/BecomeCarrierPage'
 import CarrierDashboardPage from '@/pages/CarrierDashboardPage'
 import CarrierOrdersPage from '@/pages/CarrierOrdersPage'
+import CarrierProfileEditPage from '@/pages/CarrierProfileEditPage'
 import CarrierTransportPage from '@/pages/CarrierTransportPage'
+import CarrierVehicleEditPage from '@/pages/CarrierVehicleEditPage'
 import CreateOrderPage from '@/pages/CreateOrderPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
@@ -100,6 +102,8 @@ export const routes: RouteObject[] = [
       { path: '/carrier', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierDashboardPage /></ProtectedRoute> },
       { path: '/carrier/orders', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierOrdersPage /></ProtectedRoute> },
       { path: '/carrier/transport', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierTransportPage /></ProtectedRoute> },
+      { path: '/carrier/transport/:id/edit', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierVehicleEditPage /></ProtectedRoute> },
+      { path: '/carrier/profile/edit', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierProfileEditPage /></ProtectedRoute> },
     ],
   },
 ]

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Camera } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Camera, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
@@ -8,6 +9,7 @@ import { useCreateVehicle, useCarrierVehicles } from '@/hooks'
 import { cropAndResizeImage } from '@/lib/utils'
 
 export default function CarrierTransportPage() {
+  const navigate = useNavigate()
   const vehiclesQuery = useCarrierVehicles()
   const vehicles = vehiclesQuery.data ?? []
   const createVehicle = useCreateVehicle()
@@ -42,12 +44,12 @@ export default function CarrierTransportPage() {
 
     const year = Number(formData.year)
     if (!formData.brand.trim() || !formData.model.trim() || !formData.plateNumber.trim()) {
-      setFormError('Р—Р°РїРѕР»РЅРёС‚Рµ РјР°СЂРєСѓ, РјРѕРґРµР»СЊ Рё РіРѕСЃРЅРѕРјРµСЂ.')
+      setFormError('Заполните марку, модель и госномер.')
       return
     }
 
     if (!Number.isFinite(year) || year < 1950 || year > 2100) {
-      setFormError('Р“РѕРґ С‚СЂР°РЅСЃРїРѕСЂС‚Р° РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РІ РґРёР°РїР°Р·РѕРЅРµ 1950-2100.')
+      setFormError('Год транспорта должен быть в диапазоне 1950-2100.')
       return
     }
 
@@ -75,53 +77,53 @@ export default function CarrierTransportPage() {
   return (
     <div className="space-y-4">
       <PageIntro
-        title="РњРѕР№ Р°РІС‚РѕРїР°СЂРє"
-        subtitle={`${vehicles.length} С‚СЂР°РЅСЃРїРѕСЂС‚РЅС‹С… СЃСЂРµРґСЃС‚РІ`}
+        title="Мой автопарк"
+        subtitle={`${vehicles.length} транспортных средств`}
         action={
           <Button size="sm" onClick={() => setIsCreating((value) => !value)}>
-            {isCreating ? 'РЎРєСЂС‹С‚СЊ' : 'Р”РѕР±Р°РІРёС‚СЊ'}
+            {isCreating ? 'Скрыть' : 'Добавить'}
           </Button>
         }
       />
 
       {isCreating ? (
-        <SectionCard title="РќРѕРІС‹Р№ С‚СЂР°РЅСЃРїРѕСЂС‚">
+        <SectionCard title="Новый транспорт">
           <form className="space-y-4" onSubmit={submitVehicle}>
             <div className="grid grid-cols-2 gap-3">
               <label className="space-y-2">
-                <span className="text-sm text-text-secondary">РўРёРї</span>
+                <span className="text-sm text-text-secondary">Тип</span>
                 <Input value={formData.type} onChange={(event) => setFormData((prev) => ({ ...prev, type: event.target.value }))} />
               </label>
               <label className="space-y-2">
-                <span className="text-sm text-text-secondary">Р“РѕРґ</span>
+                <span className="text-sm text-text-secondary">Год</span>
                 <Input type="number" min="1950" max="2100" value={formData.year} onChange={(event) => setFormData((prev) => ({ ...prev, year: event.target.value }))} />
               </label>
               <label className="space-y-2">
-                <span className="text-sm text-text-secondary">РњР°СЂРєР°</span>
+                <span className="text-sm text-text-secondary">Марка</span>
                 <Input value={formData.brand} onChange={(event) => setFormData((prev) => ({ ...prev, brand: event.target.value }))} />
               </label>
               <label className="space-y-2">
-                <span className="text-sm text-text-secondary">РњРѕРґРµР»СЊ</span>
+                <span className="text-sm text-text-secondary">Модель</span>
                 <Input value={formData.model} onChange={(event) => setFormData((prev) => ({ ...prev, model: event.target.value }))} />
               </label>
               <label className="space-y-2">
-                <span className="text-sm text-text-secondary">Р“РѕСЃРЅРѕРјРµСЂ</span>
+                <span className="text-sm text-text-secondary">Госномер</span>
                 <Input value={formData.plateNumber} onChange={(event) => setFormData((prev) => ({ ...prev, plateNumber: event.target.value }))} />
               </label>
               <label className="space-y-2">
-                <span className="text-sm text-text-secondary">Р“СЂСѓР·РѕРїРѕРґСЉРµРјРЅРѕСЃС‚СЊ, С‚</span>
+                <span className="text-sm text-text-secondary">Грузоподъемность, т</span>
                 <Input type="number" min="0" value={formData.capacityTons} onChange={(event) => setFormData((prev) => ({ ...prev, capacityTons: event.target.value }))} />
               </label>
               <label className="col-span-2 space-y-2">
-                <span className="text-sm text-text-secondary">РћР±СЉРµРј, Рј3</span>
+                <span className="text-sm text-text-secondary">Объем, м3</span>
                 <Input type="number" min="0" value={formData.cargoVolume} onChange={(event) => setFormData((prev) => ({ ...prev, cargoVolume: event.target.value }))} />
               </label>
             </div>
 
             <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-5 text-center">
               <Camera size={20} className="mb-2 text-primary" />
-              <span className="text-sm text-white">Р¤РѕС‚Рѕ С‚СЂР°РЅСЃРїРѕСЂС‚Р°</span>
-              <span className="mt-1 text-xs text-text-secondary">Р¤РѕС‚Рѕ Р±СѓРґРµС‚ РѕС‚РїСЂР°РІР»РµРЅРѕ РІРјРµСЃС‚Рµ СЃ РґР°РЅРЅС‹РјРё ТС</span>
+              <span className="text-sm text-white">Фото транспорта</span>
+              <span className="mt-1 text-xs text-text-secondary">Фотография будет отправлена вместе с карточкой транспорта</span>
               <input
                 type="file"
                 accept="image/*"
@@ -145,7 +147,7 @@ export default function CarrierTransportPage() {
             {createVehicle.error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{createVehicle.error.message}</div> : null}
 
             <Button className="w-full" type="submit" disabled={createVehicle.isPending}>
-              {createVehicle.isPending ? 'РЎРѕС…СЂР°РЅСЏРµРј...' : 'РЎРѕС…СЂР°РЅРёС‚СЊ С‚СЂР°РЅСЃРїРѕСЂС‚'}
+              {createVehicle.isPending ? 'Сохраняем...' : 'Сохранить транспорт'}
             </Button>
           </form>
         </SectionCard>
@@ -156,28 +158,38 @@ export default function CarrierTransportPage() {
       ) : vehiclesQuery.isError ? (
         <ErrorState onRetry={() => void vehiclesQuery.refetch()} />
       ) : vehicles.length === 0 ? (
-        <EmptyState title="РўСЂР°РЅСЃРїРѕСЂС‚ РїРѕРєР° РЅРµ РґРѕР±Р°РІР»РµРЅ" description="РљР°Рє С‚РѕР»СЊРєРѕ backend РЅР°С‡РЅРµС‚ РѕС‚РґР°РІР°С‚СЊ РјР°С€РёРЅС‹ РїРµСЂРµРІРѕР·С‡РёРєР°, РѕРЅРё РїРѕСЏРІСЏС‚СЃСЏ Р·РґРµСЃСЊ." />
+        <EmptyState title="Транспорт пока не добавлен" description="Как только вы добавите первую машину, она появится в этом списке." />
       ) : (
         <div className="space-y-3">
           {vehicles.map((vehicle) => (
-            <SectionCard key={vehicle.id}>
+            <SectionCard
+              key={vehicle.id}
+              action={
+                <button type="button" onClick={() => navigate(`/carrier/transport/${vehicle.id}/edit`)} className="text-sm text-primary">
+                  <span className="inline-flex items-center gap-1">
+                    <Pencil size={14} />
+                    Редактировать
+                  </span>
+                </button>
+              }
+            >
               <div className="grid grid-cols-[1fr_96px] items-center gap-4">
                 <div>
                   <div className="font-medium">{vehicle.plateNumber}</div>
                   <div className="mt-1 text-sm text-text-secondary">
-                    {vehicle.brand} {vehicle.model} вЂў {vehicle.type}
+                    {vehicle.brand} {vehicle.model} • {vehicle.type}
                   </div>
                   <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-text-secondary">
                     <div>
-                      <div>Р“СЂСѓР·</div>
-                      <div className="mt-1 text-sm text-white">{vehicle.capacityTons} С‚</div>
+                      <div>Груз</div>
+                      <div className="mt-1 text-sm text-white">{vehicle.capacityTons} т</div>
                     </div>
                     <div>
-                      <div>РћР±СЉРµРј</div>
-                      <div className="mt-1 text-sm text-white">{vehicle.cargoVolume} Рј3</div>
+                      <div>Объем</div>
+                      <div className="mt-1 text-sm text-white">{vehicle.cargoVolume} м3</div>
                     </div>
                     <div>
-                      <div>Р“РѕРґ</div>
+                      <div>Год</div>
                       <div className="mt-1 text-sm text-emerald-300">{vehicle.year}</div>
                     </div>
                   </div>

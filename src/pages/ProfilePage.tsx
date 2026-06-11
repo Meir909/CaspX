@@ -33,6 +33,12 @@ export default function ProfilePage() {
         </div>
       </SectionCard>
 
+      {user?.role === 'carrier' && user.carrierStatus === 'approved' ? (
+        <Button className="w-full" onClick={() => navigate('/carrier/profile/edit')}>
+          Редактировать профиль перевозчика
+        </Button>
+      ) : null}
+
       {user?.carrierStatus !== 'approved' ? (
         <Button className="w-full" onClick={() => navigate('/become-carrier')}>
           Подать заявку перевозчика

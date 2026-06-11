@@ -45,7 +45,7 @@ export default function CarrierDashboardPage() {
         ) : ordersQuery.isError ? (
           <ErrorState onRetry={() => void ordersQuery.refetch()} />
         ) : activeOrders.length === 0 ? (
-          <EmptyState title="Активных заказов нет" description="Новые заявки появятся здесь, когда backend начнет возвращать заказы перевозчика." />
+          <EmptyState title="Активных заказов нет" description="Новые заявки появятся здесь, когда у перевозчика будут назначенные рейсы." />
         ) : (
           <div className="space-y-3">
             {activeOrders.slice(0, 3).map((order) => (
@@ -81,13 +81,15 @@ export default function CarrierDashboardPage() {
         ) : vehiclesQuery.isError ? (
           <ErrorState onRetry={() => void vehiclesQuery.refetch()} />
         ) : vehicles.length === 0 ? (
-          <EmptyState title="Транспорт не найден" description="Когда backend вернет список машин перевозчика, они появятся в этом блоке." />
+          <EmptyState title="Транспорт не найден" description="Когда в профиле появятся машины, они будут показаны в этом блоке." />
         ) : (
           <div className="space-y-3">
             {vehicles.slice(0, 2).map((vehicle) => (
               <div key={vehicle.id} className="grid grid-cols-[1fr_92px] items-center gap-3 rounded-2xl bg-white/[0.03] px-4 py-3">
                 <div>
-                  <div className="font-medium">{vehicle.brand} {vehicle.model}</div>
+                  <div className="font-medium">
+                    {vehicle.brand} {vehicle.model}
+                  </div>
                   <div className="mt-1 text-sm text-text-secondary">
                     {vehicle.plateNumber} • {vehicle.capacityTons} т • {vehicle.cargoVolume} м3
                   </div>
@@ -106,8 +108,8 @@ export default function CarrierDashboardPage() {
         )}
       </SectionCard>
 
-      <Button variant="secondary" className="w-full" onClick={() => navigate('/carrier/free-transport')}>
-        Опубликовать свободный транспорт
+      <Button variant="secondary" className="w-full" onClick={() => navigate('/carrier/profile/edit')}>
+        Редактировать профиль перевозчика
       </Button>
     </div>
   )

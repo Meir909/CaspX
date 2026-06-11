@@ -1,4 +1,4 @@
-import type { CarrierProfile, CarrierVehicle, Order } from '@/types'
+import type { CalculatedRoute, CarrierProfile, CarrierVehicle, Order, TrackingEvent, TrackingTimeline } from '@/types'
 import {
   clearSessionTokens,
   getAccessToken,
@@ -102,6 +102,19 @@ function readNumber(source: Record<string, unknown>, keys: string[], fallback = 
   }
 
   return fallback
+}
+
+function readNullableNumber(source: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = source[key]
+    if (typeof value === 'number' && Number.isFinite(value)) return value
+    if (typeof value === 'string' && value.trim()) {
+      const parsed = Number(value)
+      if (!Number.isNaN(parsed)) return parsed
+    }
+  }
+
+  return undefined
 }
 
 function readBoolean(source: Record<string, unknown>, keys: string[], fallback = false) {
@@ -358,6 +371,10 @@ function mapOrder(payload: unknown): Order {
     carrierId: readNullableString(data, ['carrierId']),
     carrierName,
     carrierEmail: readNullableString(data, ['carrierEmail']),
+    originLat: readNullableNumber(data, ['originLat']),
+    originLng: readNullableNumber(data, ['originLng']),
+    destinationLat: readNullableNumber(data, ['destinationLat']),
+    destinationLng: readNullableNumber(data, ['destinationLng']),
     createdAt,
     routeStops: [
       { title: from, subtitle: fromCountry || 'Пункт отправки', color: 'blue' },
@@ -434,6 +451,53 @@ function mapVehicle(payload: unknown): CarrierVehicle {
 function mapVehiclesList(payload: unknown): CarrierVehicle[] {
   if (!isPlainObject(payload)) return []
   return asArray(payload.vehicles).map((item) => mapVehicle({ vehicle: item }))
+}
+
+function mapTrackingEvent(payload: unknown): TrackingEvent {
+  const data = isPlainObject(payload) ? payload : {}
+
+  return {
+    id: readString(data, ['id'], crypto.randomUUID()),
+    orderId: readString(data, ['orderId']),
+    status: toFrontendStatus(readString(data, ['status'], 'SEARCHING')),
+    location: readNullableString(data, ['location']),
+    timestamp: readString(data, ['timestamp', 'createdAt'], new Date().toISOString()),
+    createdAt: readString(data, ['createdAt', 'timestamp'], new Date().toISOString()),
+  }
+}
+
+function mapTrackingTimeline(payload: unknown): TrackingTimeline {
+  const data = isPlainObject(payload) ? payload : {}
+
+  return {
+    orderId: readString(data, ['orderId']),
+    currentStatus: toFrontendStatus(readString(data, ['currentStatus'], 'SEARCHING')),
+    tracking: asArray(data.tracking).map((item) => mapTrackingEvent(item)),
+  }
+}
+
+function mapCalculatedRoute(payload: unknown): CalculatedRoute {
+  const data = isPlainObject(payload) ? payload : {}
+  const geometry = isPlainObject(data.geometry) ? data.geometry : {}
+
+  return {
+    routeId: readNullableString(data, ['routeId']),
+    orderId: readNullableString(data, ['orderId']),
+    distanceKm: readNumber(data, ['distanceKm'], 0),
+    durationMinutes: readNumber(data, ['durationMinutes'], 0),
+    geometry: {
+      type: readString(geometry, ['type'], 'LineString'),
+      coordinates: asArray(geometry.coordinates)
+        .map((point) => {
+          if (!Array.isArray(point) || point.length < 2) return null
+          const lng = typeof point[0] === 'number' ? point[0] : Number(point[0])
+          const lat = typeof point[1] === 'number' ? point[1] : Number(point[1])
+          if (Number.isNaN(lng) || Number.isNaN(lat)) return null
+          return [lng, lat] as [number, number]
+        })
+        .filter((point): point is [number, number] => Boolean(point)),
+    },
+  }
 }
 
 function buildOrderPayload(data: CreateOrderInput | UpdateOrderInput) {
@@ -567,6 +631,18 @@ export const backendApi = {
       return mapOrdersList(payload)
     },
 
+    assignOrder: async (id: string) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        `/orders/${id}/assign`,
+        { method: 'POST' },
+        { auth: true },
+      )
+
+      return mapOrder(payload)
+    },
+
     updateOrder: async (id: string, data: UpdateOrderInput) => {
       assertLiveApi()
 
@@ -666,6 +742,37 @@ export const backendApi = {
       )
 
       return mapVehicle(payload)
+    },
+  },
+
+  tracking: {
+    getTimeline: async (orderId: string) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        `/orders/${orderId}/tracking`,
+        { method: 'GET' },
+        { auth: true },
+      )
+
+      return mapTrackingTimeline(payload)
+    },
+  },
+
+  routes: {
+    calculate: async (orderId: string) => {
+      assertLiveApi()
+
+      const payload = await requestJson<unknown>(
+        '/routes/calculate',
+        {
+          method: 'POST',
+          body: JSON.stringify({ orderId }),
+        },
+        { auth: true },
+      )
+
+      return mapCalculatedRoute(payload)
     },
   },
 }

@@ -46,6 +46,19 @@ export const useUpdateOrder = () => {
   })
 }
 
+export const useAssignOrder = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: backendApi.orders.assignOrder,
+    onSuccess: (order) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', 'available'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', order.id] })
+    },
+  })
+}
+
 export const useAvailableOrders = () =>
   useQuery({
     queryKey: ['orders', 'available'],
@@ -75,6 +88,46 @@ export const useCreateVehicle = () => {
     },
   })
 }
+
+export const useUpdateVehicle = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof backendApi.vehicles.updateVehicle>[1] }) =>
+      backendApi.vehicles.updateVehicle(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['carrier', 'vehicles'] })
+      queryClient.invalidateQueries({ queryKey: ['carrier', 'vehicles', variables.id] })
+    },
+  })
+}
+
+export const useUpdateCarrierProfile = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: backendApi.carrier.updateProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['carrier', 'profile'] })
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+    },
+  })
+}
+
+export const useTrackingTimeline = (orderId?: string) =>
+  useQuery({
+    queryKey: ['orders', orderId, 'tracking'],
+    queryFn: () => backendApi.tracking.getTimeline(orderId || ''),
+    enabled: Boolean(orderId),
+  })
+
+export const useCalculatedRoute = (orderId?: string) =>
+  useQuery({
+    queryKey: ['orders', orderId, 'route'],
+    queryFn: () => backendApi.routes.calculate(orderId || ''),
+    enabled: Boolean(orderId),
+    retry: false,
+  })
 
 export const useCarriers = () =>
   useQuery({

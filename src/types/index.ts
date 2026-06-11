@@ -66,6 +66,21 @@ export interface CarrierVehicle {
   updatedAt: string
 }
 
+export interface TrackingEvent {
+  id: string
+  orderId: string
+  status: Order['status']
+  location?: string
+  timestamp: string
+  createdAt: string
+}
+
+export interface TrackingTimeline {
+  orderId: string
+  currentStatus: Order['status']
+  tracking: TrackingEvent[]
+}
+
 export interface Order {
   id: string
   number: string
@@ -90,6 +105,10 @@ export interface Order {
   carrierId?: string
   carrierName?: string
   carrierEmail?: string
+  originLat?: number
+  originLng?: number
+  destinationLat?: number
+  destinationLng?: number
   createdAt: string
   routeStops?: Array<{
     title: string
