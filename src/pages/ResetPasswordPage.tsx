@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AuthShell } from '@/components/app/auth-shell'
 import { useResetPassword } from '@/hooks'
+import { useAuthStore } from '@/store'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
+  const login = useAuthStore((state) => state.login)
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token') || ''
   const [password, setPassword] = useState('')
@@ -68,7 +70,12 @@ export default function ResetPasswordPage() {
                 mutate(
                   { token, password },
                   {
-                    onSuccess: () => setCompleted(true),
+                    onSuccess: (result) => {
+                      setCompleted(true)
+                      login(result.user)
+                      window.open(result.confirmationMailtoLink, '_blank', 'noopener,noreferrer')
+                      window.setTimeout(() => navigate('/'), 150)
+                    },
                   },
                 )
               }}

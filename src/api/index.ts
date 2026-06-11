@@ -29,6 +29,7 @@ import {
   getAccessToken,
   getApiBaseUrl,
   getRefreshToken,
+  hasLocalSessionToken,
   isLiveApiEnabled,
   setSessionTokens,
 } from '@/lib/session'
@@ -150,6 +151,12 @@ type PasswordResetRequestResult = {
   mailtoLink: string
   resetLink: string
   expiresAt: string
+}
+
+type PasswordResetCompleteResult = {
+  email: string
+  confirmationMailtoLink: string
+  user: User
 }
 
 type RequestOptions = {
@@ -295,6 +302,23 @@ function createPasswordResetRequest(email: string): PasswordResetRequestResult {
     resetLink,
     expiresAt,
   }
+}
+
+function createPasswordChangedConfirmation(email: string) {
+  const subject = encodeURIComponent('CaspX: пароль успешно изменён')
+  const body = encodeURIComponent(
+    [
+      'Здравствуйте!',
+      '',
+      'Ваш пароль в CaspX был успешно изменён.',
+      'Если это были не вы, пожалуйста, немедленно восстановите доступ и свяжитесь с поддержкой.',
+      '',
+      `Аккаунт: ${email}`,
+      `Время изменения: ${new Date().toLocaleString('ru-RU')}`,
+    ].join('\n'),
+  )
+
+  return `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`
 }
 
 function consumePasswordResetToken(token: string, password: string) {
@@ -567,7 +591,7 @@ function mapTransportType(value: string) {
 }
 
 function isUsingLiveApi() {
-  return isLiveApiEnabled()
+  return isLiveApiEnabled() && !hasLocalSessionToken()
 }
 
 async function mockLogin(email: string): Promise<User> {
@@ -753,9 +777,29 @@ export const api = {
       return createPasswordResetRequest(email)
     },
 
-    resetPassword: async ({ token, password }: ResetPasswordPayload): Promise<void> => {
+    resetPassword: async ({ token, password }: ResetPasswordPayload): Promise<PasswordResetCompleteResult> => {
       await delay(400)
-      consumePasswordResetToken(token, password)
+      const result = consumePasswordResetToken(token, password)
+      const user: User = {
+        ...currentUser,
+        id: currentUser.id || `local-user-${Date.now()}`,
+        name: currentUser.name || result.email.split('@')[0],
+        email: result.email,
+        phone: currentUser.phone || '',
+        role: currentUser.role || 'user',
+      }
+
+      currentUser = user
+      setSessionTokens({
+        accessToken: `local-reset-${Date.now()}`,
+        refreshToken: `local-reset-${Date.now() + 1}`,
+      })
+
+      return {
+        email: result.email,
+        confirmationMailtoLink: createPasswordChangedConfirmation(result.email),
+        user,
+      }
     },
 
     logout: async (): Promise<void> => {

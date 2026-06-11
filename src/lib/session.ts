@@ -19,6 +19,10 @@ export function getRefreshToken() {
   return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY)
 }
 
+export function hasLocalSessionToken() {
+  return getAccessToken()?.startsWith('local-') === true
+}
+
 export function setSessionTokens(tokens: { accessToken: string; refreshToken: string }) {
   localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, tokens.accessToken)
   localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokens.refreshToken)
