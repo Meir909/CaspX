@@ -31,7 +31,8 @@ export default function BecomeCarrierPage() {
         <PageIntro title="Заявка отправлена" subtitle="Фото транспорта и данные профиля сохранены в кабинете перевозчика" />
         <SectionCard>
           <div className="text-sm text-text-secondary">
-            Ваш транспорт добавлен во фронтенд-реестр перевозчиков. Теперь он будет виден на экране поиска перевозчиков.
+            Ваш транспорт добавлен во фронтенд-реестр перевозчиков. Теперь он будет виден на экране поиска
+            перевозчиков.
           </div>
         </SectionCard>
       </div>
@@ -89,7 +90,7 @@ export default function BecomeCarrierPage() {
           <Field label="Опыт, лет" icon={<FileCheck2 size={16} />}>
             <Input type="number" min="0" value={formData.experience} onChange={(event) => setFormData((prev) => ({ ...prev, experience: event.target.value }))} className="pl-10" />
           </Field>
-          <Field label="Объем, м³" icon={<Route size={16} />}>
+          <Field label="Объем, м3" icon={<Route size={16} />}>
             <Input type="number" min="1" value={formData.volume} onChange={(event) => setFormData((prev) => ({ ...prev, volume: event.target.value }))} className="pl-10" />
           </Field>
           <Field label="Госномер" icon={<Truck size={16} />}>
@@ -114,9 +115,9 @@ export default function BecomeCarrierPage() {
             type="file"
             accept="image/*"
             className="hidden"
-              onChange={async (event) => {
-                const file = event.target.files?.[0]
-                if (!file) return
+            onChange={async (event) => {
+              const file = event.target.files?.[0]
+              if (!file) return
               const preview = await cropAndResizeImage(file, { width: 1280, height: 960, quality: 0.9 })
               setError('')
               setFormData((prev) => ({ ...prev, transportImage: preview }))

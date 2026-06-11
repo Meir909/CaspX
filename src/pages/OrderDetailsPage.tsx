@@ -13,7 +13,10 @@ export default function OrderDetailsPage() {
 
   return (
     <div className="space-y-4">
-      <PageIntro title={order ? `Заказ №${order.number}` : 'Детали заказа'} subtitle={order ? `Создан ${new Date(order.createdAt).toLocaleString('ru-RU')}` : 'Параметры перевозки'} />
+      <PageIntro
+        title={order ? `Заказ №${order.number}` : 'Детали заказа'}
+        subtitle={order ? `Создан ${new Date(order.createdAt).toLocaleString('ru-RU')}` : 'Параметры перевозки'}
+      />
 
       {orderQuery.isLoading ? (
         <LoadingList count={4} />
@@ -49,7 +52,7 @@ export default function OrderDetailsPage() {
               </div>
               <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
                 <span className="text-text-secondary">Объем груза</span>
-                <span>{order.volume} м³</span>
+                <span>{order.volume} м3</span>
               </div>
               <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
                 <span className="text-text-secondary">Количество мест</span>

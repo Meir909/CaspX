@@ -52,7 +52,11 @@ export default function MainLayout() {
     user?.role === 'carrier'
       ? [...sidebarNav, ...carrierExtraNav]
       : user?.role === 'akimat'
-        ? sidebarNav.map((item) => (item.path === '/' ? { ...item, path: '/akimat', label: 'Аналитика региона' } : item))
+        ? sidebarNav.map((item) =>
+            item.path === '/'
+              ? { ...item, path: '/akimat', label: 'Аналитика региона' }
+              : item,
+          )
         : sidebarNav
 
   return (
@@ -113,7 +117,11 @@ export default function MainLayout() {
                   <div className="font-medium">{user?.name}</div>
                   <div className="mt-1 text-sm text-text-secondary">{user?.company}</div>
                 </div>
-                {unreadCount ? <div className="rounded-full bg-primary/15 px-2 py-1 text-xs text-primary">{unreadCount}</div> : null}
+                {unreadCount ? (
+                  <div className="rounded-full bg-primary/15 px-2 py-1 text-xs text-primary">
+                    {unreadCount}
+                  </div>
+                ) : null}
               </button>
 
               <div className="grid gap-2 overflow-y-auto">
@@ -133,7 +141,9 @@ export default function MainLayout() {
                       }}
                       className={cn(
                         'flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition-colors',
-                        isActive ? 'bg-primary/10 text-white' : 'bg-white/[0.02] text-text-secondary hover:bg-white/[0.05]',
+                        isActive
+                          ? 'bg-primary/10 text-white'
+                          : 'bg-white/[0.02] text-text-secondary hover:bg-white/[0.05]',
                       )}
                     >
                       <Icon size={18} />

@@ -28,17 +28,18 @@ export default function ResetPasswordPage() {
     >
       <Card>
         <CardHeader>
-          <CardTitle>{completed ? 'Пароль обновлён' : 'Сброс пароля'}</CardTitle>
+          <CardTitle>{completed ? 'Пароль обновлен' : 'Сброс пароля'}</CardTitle>
         </CardHeader>
         <CardContent>
           {completed ? (
             <div className="space-y-4">
               <div className="rounded-2xl bg-emerald-500/10 p-4 text-sm leading-6 text-emerald-200">
-                Новый пароль сохранён. Теперь можно войти в аккаунт с обновлёнными данными.
+                Новый пароль сохранен. Мы уже перенаправили пользователя на главную страницу и подготовили письмо
+                с подтверждением на тот же email.
               </div>
-              <Button className="w-full" onClick={() => navigate('/login')}>
+              <Button className="w-full" onClick={() => navigate('/')}>
                 <ShieldCheck size={16} className="mr-2" />
-                Перейти ко входу
+                Перейти на главную
               </Button>
             </div>
           ) : tokenMissing ? (

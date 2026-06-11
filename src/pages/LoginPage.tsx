@@ -43,16 +43,34 @@ export default function LoginPage() {
             <label className="block space-y-2">
               <span className="text-sm text-text-secondary">Email</span>
               <div className="relative">
-                <Mail size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
-                <Input className="pl-10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.com" />
+                <Mail
+                  size={16}
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
+                />
+                <Input
+                  className="pl-10"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="name@company.com"
+                />
               </div>
             </label>
 
             <label className="block space-y-2">
               <span className="text-sm text-text-secondary">Пароль</span>
               <div className="relative">
-                <KeyRound size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
-                <Input className="pl-10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Введите пароль" />
+                <KeyRound
+                  size={16}
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
+                />
+                <Input
+                  className="pl-10"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Введите пароль"
+                />
               </div>
             </label>
 
@@ -60,7 +78,11 @@ export default function LoginPage() {
               {isPending ? 'Входим...' : 'Войти'}
               {!isPending ? <ArrowRight size={16} className="ml-2" /> : null}
             </Button>
-            {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error.message}</div> : null}
+            {error ? (
+              <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+                {error.message}
+              </div>
+            ) : null}
           </form>
 
           <div className="mt-5 space-y-2 text-center text-sm text-text-secondary">

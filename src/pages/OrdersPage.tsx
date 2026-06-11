@@ -105,7 +105,7 @@ export default function OrdersPage() {
                     <div>{order.cargoType}</div>
                     <div className="text-right">{formatMoney(order.price)}</div>
                     <div>
-                      {order.weight} т / {order.volume} м³
+                      {order.weight} т / {order.volume} м3
                     </div>
                     <div className="text-right">{new Date(order.pickupDate).toLocaleDateString('ru-RU')}</div>
                   </div>

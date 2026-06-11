@@ -79,7 +79,10 @@ export default function ForgotPasswordPage() {
               <label className="block space-y-2">
                 <span className="text-sm text-text-secondary">Email</span>
                 <div className="relative">
-                  <MailCheck size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+                  <MailCheck
+                    size={16}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
+                  />
                   <Input
                     className="pl-10"
                     type="email"
@@ -95,7 +98,11 @@ export default function ForgotPasswordPage() {
                 {!isPending ? <Send size={16} className="ml-2" /> : null}
               </Button>
 
-              {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error.message}</div> : null}
+              {error ? (
+                <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+                  {error.message}
+                </div>
+              ) : null}
             </form>
           )}
         </CardContent>

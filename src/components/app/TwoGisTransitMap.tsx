@@ -15,7 +15,6 @@ type MapRoute = {
 }
 
 type MapGlEntity = { destroy?: () => void }
-
 type MapGlMap = MapGlEntity
 
 type MapGlNamespace = {

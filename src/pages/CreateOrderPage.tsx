@@ -108,7 +108,7 @@ export default function CreateOrderPage() {
       onSubmit={handleSubmit}
       className="space-y-4"
     >
-      <PageIntro title="Создание заказа" subtitle="Сначала выберите страну, потом город, потом заполните параметры груза" />
+      <PageIntro title="Создание заказа" subtitle="Сначала выберите страну, потом город, затем заполните параметры груза" />
 
       <SectionCard title="Маршрут">
         <div className="space-y-4">
@@ -202,7 +202,7 @@ export default function CreateOrderPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm text-text-secondary">Объем, м³</label>
+            <label className="text-sm text-text-secondary">Объем, м3</label>
             <div className="relative">
               <ScanSearch size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
               <Input className="pl-10" type="number" min="1" value={formData.volume} onChange={(event) => setFormData((prev) => ({ ...prev, volume: event.target.value }))} />
@@ -285,7 +285,7 @@ export default function CreateOrderPage() {
           <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
             <span className="text-text-secondary">Вес и объем</span>
             <span>
-              {formData.weight} т / {formData.volume} м³
+              {formData.weight} т / {formData.volume} м3
             </span>
           </div>
           <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
