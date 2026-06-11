@@ -1,140 +1,96 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowLeft, Send, Phone, Video, MoreVertical } from 'lucide-react'
+import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
+import { PageIntro, SectionCard } from '@/components/app/primitives'
 import { useChats, useMessages, useSendMessage } from '@/hooks'
 
 export default function ChatPage() {
-  const { id } = useParams()
   const navigate = useNavigate()
-  const { data: chats } = useChats()
-  const { data: messages } = useMessages(id || '')
-  const { mutate: sendMessage } = useSendMessage()
-  const [inputText, setInputText] = useState('')
-
-  const chat = chats?.find(c => c.id === id)
-
-  const handleSend = () => {
-    if (!inputText.trim() || !id) return
-    sendMessage({ chatId: id, text: inputText })
-    setInputText('')
-  }
+  const { id } = useParams()
+  const [message, setMessage] = useState('')
+  const { data: chats = [] } = useChats()
+  const { data: messages = [] } = useMessages(id || '')
+  const { mutateAsync, isPending } = useSendMessage()
 
   if (id) {
-    return (
-      <div className="h-full flex flex-col">
-        <div className="p-4 bg-bg-secondary border-b border-gray-700/30 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/chat')}>
-            <ArrowLeft size={24} />
-          </Button>
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center font-bold">
-                {chat?.participant.name.charAt(0)}
-              </div>
-              <div>
-                <h2 className="font-semibold">{chat?.participant.name}</h2>
-                <p className="text-sm text-success">В сети</p>
-              </div>
-            </div>
-          </div>
-          <Button variant="ghost" size="icon">
-            <Phone size={20} />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Video size={20} />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <MoreVertical size={20} />
-          </Button>
-        </div>
+    const chat = chats.find((item) => item.id === id)
 
-        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-          {messages?.map((msg, i) => (
-            <motion.div
-              key={i}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className={`flex ${msg.senderId === '1' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] p-4 rounded-2xl ${
-                  msg.senderId === '1'
-                    ? 'bg-primary text-white'
-                    : 'bg-bg-card'
-                }`}
-              >
-                {msg.text}
-                <div className={`text-xs mt-1 ${msg.senderId === '1' ? 'text-white/70' : 'text-text-secondary'}`}>
-                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+    return (
+      <div className="space-y-4">
+        <PageIntro title={chat?.participant.name || 'Диалог'} subtitle="Онлайн" />
+
+        <SectionCard>
+          <div className="space-y-3">
+            {messages.map((item) => (
+              <div key={item.id} className={item.senderId === 'user-1' ? 'flex justify-end' : 'flex justify-start'}>
+                <div className={item.senderId === 'user-1' ? 'max-w-[86%] rounded-[22px] bg-primary/15 px-4 py-3 text-sm text-white' : 'max-w-[86%] rounded-[22px] bg-white/[0.04] px-4 py-3 text-sm text-slate-200'}>
+                  <div>{item.text}</div>
+                  <div className="mt-1 text-[11px] text-text-secondary">
+                    {new Date(item.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="p-4 bg-bg-secondary border-t border-gray-700/30">
-          <div className="flex gap-2">
-            <Input
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder="Написать сообщение..."
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            />
-            <Button onClick={handleSend}>
-              <Send size={20} />
-            </Button>
+            ))}
           </div>
+        </SectionCard>
+
+        <div className="flex gap-2">
+          <Input
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            placeholder="Напишите сообщение..."
+            onKeyDown={async (event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                if (message.trim()) {
+                  await mutateAsync({ chatId: id, text: message })
+                  setMessage('')
+                }
+              }
+            }}
+          />
+          <Button
+            size="icon"
+            disabled={isPending}
+            onClick={async () => {
+              if (!message.trim()) return
+              await mutateAsync({ chatId: id, text: message })
+              setMessage('')
+            }}
+          >
+            <Send size={18} />
+          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft size={24} />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Чаты</h1>
-          <p className="text-text-secondary">{chats?.length || 0} диалогов</p>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <PageIntro title="Сообщения" subtitle={`${chats.length} активных диалога`} />
 
-      <div className="space-y-2">
-        {chats?.map((chat, i) => (
-          <motion.div
-            key={chat.id}
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: i * 0.05 }}
-          >
-            <Card
-              className="p-4 cursor-pointer hover:bg-bg-secondary/50 transition-colors"
-              onClick={() => navigate(`/chat/${chat.id}`)}
-            >
+      <div className="space-y-3">
+        {chats.map((chat) => (
+          <button key={chat.id} type="button" onClick={() => navigate(`/chat/${chat.id}`)} className="w-full text-left">
+            <SectionCard>
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center font-bold text-lg">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-lg font-semibold text-primary">
                   {chat.participant.name.charAt(0)}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">{chat.participant.name}</h3>
-                    {chat.unreadCount > 0 && (
-                      <span className="bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                        {chat.unreadCount}
-                      </span>
-                    )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="truncate font-medium">{chat.participant.name}</div>
+                    {chat.unreadCount > 0 ? (
+                      <span className="rounded-full bg-primary/15 px-2 py-1 text-xs text-primary">{chat.unreadCount}</span>
+                    ) : null}
                   </div>
-                  <p className="text-text-secondary text-sm truncate">{chat.lastMessage}</p>
+                  <div className="mt-1 truncate text-sm text-text-secondary">{chat.lastMessage}</div>
                 </div>
               </div>
-            </Card>
-          </motion.div>
+            </SectionCard>
+          </button>
         ))}
       </div>
     </div>

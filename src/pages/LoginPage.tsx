@@ -1,80 +1,80 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { ArrowRight, KeyRound, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useAuthStore } from '@/store'
+import { AuthShell } from '@/components/app/auth-shell'
 import { useLogin } from '@/hooks'
+import { useAuthStore } from '@/store'
 
 export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
   const { mutate, isPending } = useLogin()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    mutate({ email, password }, {
-      onSuccess: (user) => {
-        login(user)
-        navigate('/')
-      }
-    })
-  }
+  const [email, setEmail] = useState('alisher@caspx.kz')
+  const [password, setPassword] = useState('12345678')
 
   return (
-    <motion.div
-      initial={{ y: 20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+    <AuthShell
+      title="Вход в CaspX"
+      subtitle="Откройте заказы, перевозчиков, аналитику и мониторинг маршрутов в одном интерфейсе."
     >
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2">CaspX</h1>
-        <p className="text-text-secondary">Caspian Exchange</p>
-      </div>
-
       <Card>
         <CardHeader>
-          <CardTitle className="text-center">Вход</CardTitle>
+          <CardTitle>Войти</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm text-text-secondary mb-2">Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@mail.com"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-text-secondary mb-2">Пароль</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? 'Загрузка...' : 'Войти'}
+          <form
+            className="space-y-4"
+            onSubmit={(event) => {
+              event.preventDefault()
+              mutate(
+                { email, password },
+                {
+                  onSuccess: (user) => {
+                    login(user)
+                    navigate('/')
+                  },
+                },
+              )
+            }}
+          >
+            <label className="block space-y-2">
+              <span className="text-sm text-text-secondary">Email</span>
+              <div className="relative">
+                <Mail size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+                <Input className="pl-10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@company.com" />
+              </div>
+            </label>
+
+            <label className="block space-y-2">
+              <span className="text-sm text-text-secondary">Пароль</span>
+              <div className="relative">
+                <KeyRound size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
+                <Input className="pl-10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Введите пароль" />
+              </div>
+            </label>
+
+            <Button className="w-full" type="submit" disabled={isPending}>
+              {isPending ? 'Входим...' : 'Войти'}
+              {!isPending ? <ArrowRight size={16} className="ml-2" /> : null}
             </Button>
           </form>
 
-          <div className="mt-6 text-center space-y-2">
-            <Link to="/forgot-password" className="text-sm text-primary hover:underline">
+          <div className="mt-5 space-y-2 text-center text-sm text-text-secondary">
+            <Link to="/forgot-password" className="text-primary transition-colors hover:text-white">
               Забыли пароль?
             </Link>
-            <p className="text-sm text-text-secondary">
-              Нет аккаунта? <Link to="/register" className="text-primary hover:underline">Регистрация</Link>
-            </p>
+            <div>
+              Нет аккаунта?{' '}
+              <Link to="/register" className="text-primary transition-colors hover:text-white">
+                Регистрация
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </AuthShell>
   )
 }

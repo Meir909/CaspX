@@ -1,5 +1,8 @@
 import { create } from 'zustand'
-import { User, UserRole, Notification, Chat, Message } from '@/types'
+import type { Message, Notification, User, UserRole } from '@/types'
+import { appUser, initialMessages, notifications as seedNotifications } from '@/data/mock'
+
+const STORAGE_KEY = 'caspx-role'
 
 interface AuthStore {
   user: User | null
@@ -13,22 +16,35 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
-  login: (user) => set({ user, isAuthenticated: true }),
-  logout: () => set({ user: null, isAuthenticated: false }),
-  switchRole: (role) => set((state) => state.user ? { user: { ...state.user, role } } : state),
+  login: (user) => {
+    localStorage.setItem(STORAGE_KEY, user.role)
+    set({ user, isAuthenticated: true })
+  },
+  logout: () => {
+    localStorage.removeItem(STORAGE_KEY)
+    set({ user: null, isAuthenticated: false })
+  },
+  switchRole: (role) =>
+    set((state) => {
+      if (!state.user) return state
+      localStorage.setItem(STORAGE_KEY, role)
+      return {
+        user: {
+          ...state.user,
+          role,
+        },
+      }
+    }),
   initialize: () => {
-    const mockUser: User = {
-      id: '1',
-      name: 'Алишер А.',
-      email: 'alisher@example.com',
-      phone: '+7 701 123 4567',
-      role: 'user',
-      rating: 4.8,
-      company: 'TOO Caspian Logistics',
-      carrierStatus: 'approved'
-    }
-    set({ user: mockUser, isAuthenticated: true })
-  }
+    const storedRole = localStorage.getItem(STORAGE_KEY) as UserRole | null
+    set({
+      user: {
+        ...appUser,
+        role: storedRole ?? appUser.role,
+      },
+      isAuthenticated: true,
+    })
+  },
 }))
 
 interface UIStore {
@@ -38,7 +54,7 @@ interface UIStore {
 
 export const useUIStore = create<UIStore>((set) => ({
   sidebarOpen: false,
-  setSidebarOpen: (open) => set({ sidebarOpen: open })
+  setSidebarOpen: (open) => set({ sidebarOpen: open }),
 }))
 
 interface MapStore {
@@ -58,13 +74,14 @@ export const useMapStore = create<MapStore>((set) => ({
     ports: true,
     checkpoints: true,
     vessels: false,
-    trucks: false,
-    routes: false,
-    load: false
+    trucks: true,
+    routes: true,
+    load: true,
   },
-  toggleLayer: (layer) => set((state) => ({
-    layers: { ...state.layers, [layer]: !state.layers[layer] }
-  }))
+  toggleLayer: (layer) =>
+    set((state) => ({
+      layers: { ...state.layers, [layer]: !state.layers[layer] },
+    })),
 }))
 
 interface NotificationStore {
@@ -75,86 +92,40 @@ interface NotificationStore {
 }
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
-  notifications: [
-    {
-      id: '1',
-      type: 'carrier_found',
-      title: 'Найден перевозчик!',
-      message: 'Перевозчик John D. готов взять ваш заказ',
-      read: false,
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: '2',
-      type: 'new_message',
-      title: 'Новое сообщение',
-      message: 'Вы получили новое сообщение в чате',
-      read: true,
-      createdAt: new Date(Date.now() - 3600000).toISOString()
-    }
-  ],
-  addNotification: (notification) => set((state) => ({ notifications: [notification, ...state.notifications] })),
-  markAsRead: (id) => set((state) => ({
-    notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)
-  })),
-  markAllAsRead: () => set((state) => ({
-    notifications: state.notifications.map(n => ({ ...n, read: true }))
-  }))
+  notifications: seedNotifications,
+  addNotification: (notification) =>
+    set((state) => ({ notifications: [notification, ...state.notifications] })),
+  markAsRead: (id) =>
+    set((state) => ({
+      notifications: state.notifications.map((notification) =>
+        notification.id === id ? { ...notification, read: true } : notification,
+      ),
+    })),
+  markAllAsRead: () =>
+    set((state) => ({
+      notifications: state.notifications.map((notification) => ({
+        ...notification,
+        read: true,
+      })),
+    })),
 }))
 
 interface ChatStore {
-  chats: Chat[]
   currentChatId: string | null
-  messages: Message[]
+  messagesByChat: Record<string, Message[]>
   setCurrentChat: (id: string | null) => void
-  sendMessage: (text: string) => void
+  appendMessage: (chatId: string, message: Message) => void
 }
 
 export const useChatStore = create<ChatStore>((set) => ({
-  chats: [
-    {
-      id: '1',
-      participant: {
-        id: '2',
-        name: 'John Doe',
-        avatar: 'https://i.pravatar.cc/150?img=1'
-      },
-      lastMessage: 'Привет! Я готов взять ваш заказ',
-      unreadCount: 2
-    },
-    {
-      id: '2',
-      participant: {
-        id: '3',
-        name: 'Sarah Smith',
-        avatar: 'https://i.pravatar.cc/150?img=2'
-      },
-      lastMessage: 'Спасибо за быструю доставку!',
-      unreadCount: 0
-    }
-  ],
   currentChatId: null,
-  messages: [
-    {
-      id: '1',
-      senderId: '2',
-      text: 'Привет! Я готов взять ваш заказ',
-      createdAt: new Date(Date.now() - 60000).toISOString()
-    },
-    {
-      id: '2',
-      senderId: '1',
-      text: 'Отлично! Когда вы сможете забрать?',
-      createdAt: new Date(Date.now() - 30000).toISOString()
-    }
-  ],
+  messagesByChat: initialMessages,
   setCurrentChat: (id) => set({ currentChatId: id }),
-  sendMessage: (text) => set((state) => ({
-    messages: [...state.messages, {
-      id: Date.now().toString(),
-      senderId: '1',
-      text,
-      createdAt: new Date().toISOString()
-    }]
-  }))
+  appendMessage: (chatId, message) =>
+    set((state) => ({
+      messagesByChat: {
+        ...state.messagesByChat,
+        [chatId]: [...(state.messagesByChat[chatId] ?? []), message],
+      },
+    })),
 }))

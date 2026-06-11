@@ -1,188 +1,163 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ArrowRightLeft, Calendar, Package, Truck } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRightLeft, Calendar, Truck, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { SectionCard, PageIntro } from '@/components/app/primitives'
 import { Select } from '@/components/ui/select'
-import { Card } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 import { useCreateOrder } from '@/hooks'
+
+const requirementOptions = ['Требуется погрузка', 'Температурный режим', 'Контроль пломбы', 'Срочная подача']
 
 export default function CreateOrderPage() {
   const navigate = useNavigate()
   const { mutate, isPending } = useCreateOrder()
   const [formData, setFormData] = useState({
-    from: '',
-    to: '',
-    cargoType: '',
-    weight: '',
-    volume: '',
-    date: '',
+    from: 'Актау',
+    to: 'Баку',
+    cargoType: 'Металл',
+    weight: '40',
+    volume: '82',
+    date: '2024-06-15',
     comment: '',
-    requirements: [] as string[]
+    requirements: ['Требуется погрузка'] as string[],
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    mutate(formData, {
-      onSuccess: () => {
-        navigate('/orders')
-      }
-    })
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault()
+
+    mutate(
+      {
+        ...formData,
+        weight: Number(formData.weight),
+        volume: Number(formData.volume),
+      },
+      {
+      onSuccess: (order) => navigate(`/carriers?order=${order.id}`),
+      },
+    )
+  }
+
+  const toggleRequirement = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      requirements: prev.requirements.includes(value)
+        ? prev.requirements.filter((item) => item !== value)
+        : [...prev.requirements, value],
+    }))
   }
 
   return (
-    <div className="p-4">
-      <motion.div
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        className="flex items-center gap-4 mb-6"
-      >
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft size={24} />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Создание заказа</h1>
-          <p className="text-text-secondary">Заполните информацию о грузе</p>
-        </div>
-      </motion.div>
+    <motion.form
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      onSubmit={handleSubmit}
+      className="space-y-4"
+    >
+      <PageIntro title="Создание заказа" subtitle="Заполните информацию о грузе и маршруте" />
 
-      <motion.form
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        onSubmit={handleSubmit}
-        className="space-y-6"
-      >
-        <Card className="p-5">
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-4 h-4 bg-primary rounded-full" />
-                <div className="w-0.5 h-8 bg-gray-600" />
-                <div className="w-4 h-4 bg-accent rounded-full" />
-              </div>
-              <div className="flex-1 space-y-3">
-                <Input
-                  value={formData.from}
-                  onChange={(e) => setFormData({ ...formData, from: e.target.value })}
-                  placeholder="Откуда"
-                  required
-                />
-                <Input
-                  value={formData.to}
-                  onChange={(e) => setFormData({ ...formData, to: e.target.value })}
-                  placeholder="Куда"
-                  required
-                />
-              </div>
-              <Button variant="ghost" size="icon">
-                <ArrowRightLeft size={20} />
-              </Button>
-            </div>
+      <SectionCard>
+        <div className="flex items-start gap-3">
+          <div className="flex flex-col items-center pt-1">
+            <div className="h-3.5 w-3.5 rounded-full bg-primary shadow-[0_0_0_4px_rgba(37,99,235,0.15)]" />
+            <div className="h-12 w-px bg-white/10" />
+            <div className="h-3.5 w-3.5 rounded-full bg-violet-400 shadow-[0_0_0_4px_rgba(167,139,250,0.15)]" />
           </div>
-        </Card>
-
-        <Card className="p-5">
-          <h3 className="font-semibold mb-4">Информация о грузе</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-text-secondary mb-2">
-                <Package size={14} className="inline mr-1" />
-                Тип груза
-              </label>
-              <Select
-                value={formData.cargoType}
-                onChange={(e) => setFormData({ ...formData, cargoType: e.target.value })}
-                required
-              >
-                <option value="">Выберите</option>
-                <option value="general">Генеральный</option>
-                <option value="container">Контейнеры</option>
-                <option value="liquid">Жидкости</option>
-                <option value="bulk">Насыпные</option>
-                <option value="heavy">Тяжелые</option>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm text-text-secondary mb-2">
-                <Truck size={14} className="inline mr-1" />
-                Вес (т)
-              </label>
-              <Input
-                type="number"
-                value={formData.weight}
-                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                placeholder="20"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-text-secondary mb-2">
-                <Package size={14} className="inline mr-1" />
-                Объём (м³)
-              </label>
-              <Input
-                type="number"
-                value={formData.volume}
-                onChange={(e) => setFormData({ ...formData, volume: e.target.value })}
-                placeholder="40"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-text-secondary mb-2">
-                <Calendar size={14} className="inline mr-1" />
-                Дата
-              </label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <h3 className="font-semibold mb-4">Дополнительно</h3>
-          <Textarea
-            value={formData.comment}
-            onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
-            placeholder="Комментарий к заказу..."
-            className="mb-4"
-          />
-          <div className="flex flex-wrap gap-2">
-            {['Хрупкий', 'Требует погрузки', 'Опасный', 'Негабаритный'].map((req) => (
-              <button
-                key={req}
-                type="button"
-                onClick={() => {
-                  setFormData(prev => ({
-                    ...prev,
-                    requirements: prev.requirements.includes(req)
-                      ? prev.requirements.filter(r => r !== req)
-                      : [...prev.requirements, req]
-                  }))
-                }}
-                className={`px-4 py-2 rounded-xl text-sm transition-colors ${
-                  formData.requirements.includes(req)
-                    ? 'bg-primary text-white'
-                    : 'bg-bg-secondary text-text-secondary hover:bg-bg-card'
-                }`}
-              >
-                {req}
+          <div className="flex-1 space-y-3">
+            <Input value={formData.from} onChange={(event) => setFormData({ ...formData, from: event.target.value })} />
+            <div className="flex items-center gap-2">
+              <Input value={formData.to} onChange={(event) => setFormData({ ...formData, to: event.target.value })} />
+              <button type="button" className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-text-secondary">
+                <ArrowRightLeft size={18} />
               </button>
-            ))}
+            </div>
           </div>
-        </Card>
+        </div>
+      </SectionCard>
 
-        <Button type="submit" size="lg" className="w-full" disabled={isPending}>
-          {isPending ? 'Создаём...' : 'Найти перевозчика'}
-        </Button>
-      </motion.form>
-    </div>
+      <SectionCard title="Информация о грузе">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-sm text-text-secondary">Тип груза</label>
+            <Select value={formData.cargoType} onChange={(event) => setFormData({ ...formData, cargoType: event.target.value })}>
+              <option>Металл</option>
+              <option>Контейнеры</option>
+              <option>Продукты</option>
+              <option>Оборудование</option>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-text-secondary">Вес, тонн</label>
+            <Input type="number" value={formData.weight} onChange={(event) => setFormData({ ...formData, weight: event.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-text-secondary">Объем, м³</label>
+            <Input type="number" value={formData.volume} onChange={(event) => setFormData({ ...formData, volume: event.target.value })} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm text-text-secondary">Дата отгрузки</label>
+            <Input type="date" value={formData.date} onChange={(event) => setFormData({ ...formData, date: event.target.value })} />
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Дополнительно">
+        <Textarea
+          value={formData.comment}
+          onChange={(event) => setFormData({ ...formData, comment: event.target.value })}
+          placeholder="Укажите пожелания к подаче транспорта, погрузке или документам"
+        />
+        <div className="mt-4 flex flex-wrap gap-2">
+          {requirementOptions.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => toggleRequirement(item)}
+              className={
+                formData.requirements.includes(item)
+                  ? 'rounded-full bg-primary/15 px-3 py-2 text-sm text-primary'
+                  : 'rounded-full bg-white/[0.04] px-3 py-2 text-sm text-text-secondary'
+              }
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Сводка">
+        <div className="space-y-3 text-sm">
+          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
+            <div className="flex items-center gap-2 text-text-secondary">
+              <Package size={16} />
+              <span>Тип груза</span>
+            </div>
+            <span>{formData.cargoType}</span>
+          </div>
+          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
+            <div className="flex items-center gap-2 text-text-secondary">
+              <Truck size={16} />
+              <span>Вес и объем</span>
+            </div>
+            <span>
+              {formData.weight} т / {formData.volume} м³
+            </span>
+          </div>
+          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
+            <div className="flex items-center gap-2 text-text-secondary">
+              <Calendar size={16} />
+              <span>Дата подачи</span>
+            </div>
+            <span>{formData.date}</span>
+          </div>
+        </div>
+      </SectionCard>
+
+      <Button className="w-full" size="lg" type="submit" disabled={isPending}>
+        {isPending ? 'Создаем заказ...' : 'Найти перевозчика'}
+      </Button>
+    </motion.form>
   )
 }

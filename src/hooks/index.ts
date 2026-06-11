@@ -1,136 +1,135 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api'
 
-export const useProfile = () => {
-  return useQuery({
+export const useProfile = () =>
+  useQuery({
     queryKey: ['profile'],
-    queryFn: api.auth.getProfile
+    queryFn: api.auth.getProfile,
   })
-}
 
-export const useOrders = () => {
-  return useQuery({
+export const useOrders = () =>
+  useQuery({
     queryKey: ['orders'],
-    queryFn: api.orders.getOrders
+    queryFn: api.orders.getOrders,
   })
-}
+
+export const useOrder = (id?: string) =>
+  useQuery({
+    queryKey: ['orders', id],
+    queryFn: () => api.orders.getOrder(id || ''),
+    enabled: Boolean(id),
+  })
 
 export const useCreateOrder = () => {
   const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: api.orders.createOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
-    }
+    },
   })
 }
 
-export const useCarriers = () => {
-  return useQuery({
+export const useCarriers = () =>
+  useQuery({
     queryKey: ['carriers'],
-    queryFn: api.orders.getCarriers
+    queryFn: api.orders.getCarriers,
   })
-}
 
-export const usePorts = () => {
-  return useQuery({
+export const usePorts = () =>
+  useQuery({
     queryKey: ['ports'],
-    queryFn: api.map.getPorts
+    queryFn: api.map.getPorts,
   })
-}
 
-export const useCheckpoints = () => {
-  return useQuery({
+export const useCheckpoints = () =>
+  useQuery({
     queryKey: ['checkpoints'],
-    queryFn: api.map.getCheckpoints
+    queryFn: api.map.getCheckpoints,
   })
-}
 
-export const useVessels = () => {
-  return useQuery({
+export const useVessels = () =>
+  useQuery({
     queryKey: ['vessels'],
-    queryFn: api.map.getVessels
+    queryFn: api.map.getVessels,
   })
-}
 
-export const useTrucks = () => {
-  return useQuery({
+export const useTrucks = () =>
+  useQuery({
     queryKey: ['trucks'],
-    queryFn: api.map.getTrucks
+    queryFn: api.map.getTrucks,
   })
-}
 
-export const useAIAnalytics = () => {
-  return useQuery({
+export const useAIAnalytics = () =>
+  useQuery({
     queryKey: ['aiAnalytics'],
-    queryFn: api.ai.getAnalytics
+    queryFn: api.ai.getAnalytics,
   })
-}
 
-export const useGenerateRoute = () => {
-  return useMutation({
-    mutationFn: ({ from, to }: { from: string; to: string }) => api.ai.generateRoute(from, to)
+export const useGenerateRoute = () =>
+  useMutation({
+    mutationFn: ({ from, to }: { from: string; to: string }) => api.ai.generateRoute(from, to),
   })
-}
 
-export const useChats = () => {
-  return useQuery({
+export const useAIChat = () =>
+  useMutation({
+    mutationFn: api.ai.chat,
+  })
+
+export const useChats = () =>
+  useQuery({
     queryKey: ['chats'],
-    queryFn: api.chat.getChats
+    queryFn: api.chat.getChats,
   })
-}
 
-export const useMessages = (chatId: string) => {
-  return useQuery({
+export const useMessages = (chatId: string) =>
+  useQuery({
     queryKey: ['messages', chatId],
-    queryFn: () => api.chat.getMessages(chatId)
+    queryFn: () => api.chat.getMessages(chatId),
+    enabled: Boolean(chatId),
   })
-}
 
 export const useSendMessage = () => {
   const queryClient = useQueryClient()
+
   return useMutation({
     mutationFn: ({ chatId, text }: { chatId: string; text: string }) => api.chat.sendMessage(chatId, text),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.chatId] })
-    }
+      queryClient.invalidateQueries({ queryKey: ['chats'] })
+    },
   })
 }
 
-export const useStats = () => {
-  return useQuery({
+export const useStats = () =>
+  useQuery({
     queryKey: ['stats'],
-    queryFn: api.stats.getStats
+    queryFn: api.stats.getStats,
   })
-}
 
-export const useCharts = () => {
-  return useQuery({
+export const useCharts = () =>
+  useQuery({
     queryKey: ['charts'],
-    queryFn: api.stats.getCharts
+    queryFn: api.stats.getCharts,
   })
-}
 
-export const useLogin = () => {
-  return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => api.auth.login(email, password)
+export const useLogin = () =>
+  useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) => api.auth.login(email, password),
   })
-}
 
-export const useRegister = () => {
-  return useMutation({
-    mutationFn: api.auth.register
+export const useRegister = () =>
+  useMutation({
+    mutationFn: api.auth.register,
   })
-}
 
-export const useForgotPassword = () => {
-  return useMutation({
-    mutationFn: api.auth.forgotPassword
+export const useForgotPassword = () =>
+  useMutation({
+    mutationFn: api.auth.forgotPassword,
   })
-}
 
-export const useBecomeCarrier = () => {
-  return useMutation({
-    mutationFn: api.auth.becomeCarrier
+export const useBecomeCarrier = () =>
+  useMutation({
+    mutationFn: api.auth.becomeCarrier,
   })
-}

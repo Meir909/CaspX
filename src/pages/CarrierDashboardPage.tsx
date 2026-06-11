@@ -1,122 +1,65 @@
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { ArrowLeft, Truck, Package, CheckCircle2, DollarSign, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { useOrders, useCarriers } from '@/hooks'
-import { cn } from '@/lib/utils'
+import { PageIntro, SectionCard, StatCard, TruckIllustration } from '@/components/app/primitives'
+import { formatMoney, vehicles } from '@/data/mock'
+import { useOrders } from '@/hooks'
 
 export default function CarrierDashboardPage() {
   const navigate = useNavigate()
-  const { data: orders } = useOrders()
-  const { data: carriers } = useCarriers()
+  const { data: orders = [] } = useOrders()
 
-  const availableOrders = orders?.filter(o => o.status === 'searching')
-
-  const stats = [
-    { label: 'Активные заказы', value: '3', icon: <Package size={20} />, color: 'text-primary' },
-    { label: 'Выполнено', value: '127', icon: <CheckCircle2 size={20} />, color: 'text-success' },
-    { label: 'Заработок', value: '2.4M ₸', icon: <DollarSign size={20} />, color: 'text-accent' },
-    { label: 'Рейтинг', value: '4.9', icon: <BarChart3 size={20} />, color: 'text-warning' }
-  ]
+  const availableOrders = orders.filter((order) => order.status === 'searching').slice(0, 3)
 
   return (
-    <div className="p-4">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft size={24} />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Truck size={24} className="text-primary" />
-            Carrier Dashboard
-          </h1>
-          <p className="text-text-secondary">Управление перевозками</p>
-        </div>
+    <div className="space-y-4">
+      <PageIntro title="Caspian Logistics" subtitle="Перевозчик • рейтинг 4.8" />
+
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard value="8" label="активных заказов" delta="+2" tone="blue" />
+        <StatCard value="156" label="выполнено" delta="+12" tone="green" />
+        <StatCard value="4.8" label="рейтинг" delta="стабильно" tone="amber" />
+        <StatCard value="12 450 000 ₸" label="доход за месяц" delta="+18%" tone="violet" />
       </div>
 
-      <div className="flex gap-2 mb-6 bg-bg-card rounded-xl p-1">
-        <button className="flex-1 py-2 rounded-xl bg-primary text-white text-sm font-medium">
-          Обзор
-        </button>
-        <button
-          onClick={() => navigate('/carrier/orders')}
-          className="flex-1 py-2 rounded-xl text-text-secondary hover:text-white text-sm font-medium"
-        >
-          Доступные заказы
-        </button>
-        <button
-          onClick={() => navigate('/carrier/transport')}
-          className="flex-1 py-2 rounded-xl text-text-secondary hover:text-white text-sm font-medium"
-        >
-          Транспорт
-        </button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        {stats.map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: i * 0.05 }}
-          >
-            <Card className="p-5">
-              <CardContent className="p-0">
-                <div className={cn('mb-3', stat.color)}>{stat.icon}</div>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-sm text-text-secondary">{stat.label}</div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-semibold">Доступные заказы{carriers ? ` · ${carriers.length} перевозчика в системе` : ''}</h2>
-        <Button variant="ghost" onClick={() => navigate('/carrier/orders')}>
-          Все
-        </Button>
-      </div>
-
-      <div className="space-y-3">
-        {availableOrders?.slice(0, 3).map((order, i) => (
-          <motion.div
-            key={order.id}
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.2 + i * 0.05 }}
-          >
-            <Card className="p-5">
-              <CardContent className="p-0">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-semibold">{order.from} → {order.to}</p>
-                    <p className="text-sm text-text-secondary">{order.cargoType} • {order.weight} т</p>
+      <SectionCard title="Активные заказы" action={<button type="button" onClick={() => navigate('/carrier/orders')} className="text-sm text-primary">Смотреть все</button>}>
+        <div className="space-y-3">
+          {availableOrders.map((order) => (
+            <div key={order.id} className="rounded-2xl bg-white/[0.03] px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="font-medium">№{order.number}</div>
+                  <div className="mt-1 text-sm text-text-secondary">
+                    {order.from} → {order.to}
                   </div>
-                  <Badge variant="warning">Новый</Badge>
                 </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-lg font-bold text-primary">150 000 ₸</p>
-                  <Button size="sm">Принять</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+                <span className="text-sm text-primary">В пути</span>
+              </div>
+              <div className="mt-3 text-sm text-text-secondary">{formatMoney(order.price)}</div>
+            </div>
+          ))}
+        </div>
+      </SectionCard>
 
-      <div className="mt-8">
-        <Button
-          onClick={() => navigate('/carrier/free-transport')}
-          className="w-full"
-          variant="secondary"
-        >
-          <Truck size={20} className="mr-2" />
-          Опубликовать свободный транспорт
-        </Button>
-      </div>
+      <SectionCard title="Мой автопарк" action={<button type="button" onClick={() => navigate('/carrier/transport')} className="text-sm text-primary">Смотреть все</button>}>
+        <div className="space-y-3">
+          {vehicles.slice(0, 2).map((vehicle) => (
+            <div key={vehicle.id} className="grid grid-cols-[1fr_92px] items-center gap-3 rounded-2xl bg-white/[0.03] px-4 py-3">
+              <div>
+                <div className="font-medium">{vehicle.type}</div>
+                <div className="mt-1 text-sm text-text-secondary">
+                  {vehicle.plate} • {vehicle.capacity} • {vehicle.volume}
+                </div>
+                <div className="mt-1 text-sm text-emerald-300">{vehicle.location}</div>
+              </div>
+              <TruckIllustration compact />
+            </div>
+          ))}
+        </div>
+      </SectionCard>
+
+      <Button variant="secondary" className="w-full" onClick={() => navigate('/carrier/free-transport')}>
+        Опубликовать свободный транспорт
+      </Button>
     </div>
   )
 }

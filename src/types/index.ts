@@ -12,29 +12,56 @@ export interface User {
   carrierStatus?: 'pending' | 'approved' | 'rejected'
 }
 
-export interface Order {
-  id: string
-  from: string
-  to: string
-  cargoType: string
-  weight: number
-  volume: number
-  date: string
-  comment?: string
-  requirements?: string[]
-  status: 'created' | 'searching' | 'assigned' | 'in_progress' | 'delivered' | 'cancelled'
-  carrier?: Carrier
-  createdAt: string
-}
-
 export interface Carrier {
   id: string
   name: string
+  company?: string
   rating: number
   experience: number
   price: number
   transport: string
   avatar?: string
+  etaLabel?: string
+  capacityLabel?: string
+  volumeLabel?: string
+  badge?: string
+  phone?: string
+}
+
+export interface Order {
+  id: string
+  number: string
+  from: string
+  fromRegion?: string
+  to: string
+  toRegion?: string
+  cargoType: string
+  weight: number
+  volume: number
+  places: number
+  pickupDate: string
+  deliveryDate: string
+  transportType: string
+  price: number
+  comment?: string
+  requirements?: string[]
+  notes?: string
+  status: 'created' | 'searching' | 'assigned' | 'in_progress' | 'delivered' | 'cancelled'
+  carrierId?: string
+  createdAt: string
+  routeStops?: Array<{
+    title: string
+    subtitle: string
+    color: 'blue' | 'violet' | 'amber' | 'green' | 'red'
+  }>
+  trackingEvents?: Array<{
+    time: string
+    title: string
+    location: string
+  }>
+  progressLabel?: string
+  remainingLabel?: string
+  speedLabel?: string
 }
 
 export interface Port {
@@ -98,10 +125,4 @@ export interface Route {
   eta: string
   risk: string
   cost: string
-}
-
-export interface Stat {
-  label: string
-  value: number | string
-  icon: string
 }
