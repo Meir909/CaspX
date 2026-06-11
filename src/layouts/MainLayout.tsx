@@ -1,63 +1,44 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
-  BellRing,
   Boxes,
-  CarFront,
   ClipboardList,
   Compass,
   FilePlus2,
   Files,
   Headset,
   House,
-  MapPinned,
   Menu,
-  ShipWheel,
-  Sparkles,
+  Truck,
   X,
 } from 'lucide-react'
 import { AppLogo, UserAvatar } from '@/components/app/primitives'
-import { useRealtimeSystem } from '@/hooks/realtime'
-import { useAuthStore, useNotificationStore, useUIStore } from '@/store'
+import { useAuthStore, useUIStore } from '@/store'
 import { cn } from '@/lib/utils'
 
-const sidebarNav = [
+const userNav = [
   { path: '/', label: 'Главная', icon: House },
   { path: '/create-order', label: 'Создать заказ', icon: FilePlus2 },
-  { path: '/carriers', label: 'Поиск перевозчика', icon: Compass },
   { path: '/orders', label: 'Мои заказы', icon: Files },
-  { path: '/map', label: 'Карта транзита', icon: MapPinned },
-  { path: '/port', label: 'Порт Актау', icon: ShipWheel },
-  { path: '/ai', label: 'AI Assistant', icon: Sparkles },
   { path: '/support', label: 'Поддержка', icon: Headset },
-  { path: '/notifications', label: 'Уведомления', icon: BellRing },
+  { path: '/about', label: 'О приложении', icon: Compass },
 ]
 
-const carrierExtraNav = [
+const carrierNav = [
   { path: '/carrier', label: 'Кабинет перевозчика', icon: Boxes },
   { path: '/carrier/orders', label: 'Доступные заказы', icon: ClipboardList },
-  { path: '/carrier/transport', label: 'Мой транспорт', icon: CarFront },
+  { path: '/carrier/transport', label: 'Мой транспорт', icon: Truck },
 ]
 
 export default function MainLayout() {
-  useRealtimeSystem()
   const navigate = useNavigate()
   const location = useLocation()
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const { user } = useAuthStore()
-  const { notifications } = useNotificationStore()
 
-  const unreadCount = notifications.filter((notification) => !notification.read).length
-  const navItems =
-    user?.role === 'carrier'
-      ? [...sidebarNav, ...carrierExtraNav]
-      : user?.role === 'akimat'
-        ? sidebarNav.map((item) =>
-            item.path === '/'
-              ? { ...item, path: '/akimat', label: 'Аналитика региона' }
-              : item,
-          )
-        : sidebarNav
+  const navItems = user?.role === 'carrier' && user?.carrierStatus === 'approved'
+    ? [...userNav, ...carrierNav]
+    : userNav
 
   return (
     <div className="min-h-screen px-3 py-4 sm:px-6">
@@ -72,9 +53,8 @@ export default function MainLayout() {
               <Menu size={20} />
             </button>
             <AppLogo />
-            <button type="button" onClick={() => navigate('/profile')} className="relative">
+            <button type="button" onClick={() => navigate('/profile')}>
               <UserAvatar name={user?.name} avatar={user?.avatar} size="sm" />
-              {unreadCount ? <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-primary" /> : null}
             </button>
           </div>
         </header>
@@ -115,13 +95,8 @@ export default function MainLayout() {
                 <UserAvatar name={user?.name} avatar={user?.avatar} size="md" />
                 <div className="flex-1">
                   <div className="font-medium">{user?.name}</div>
-                  <div className="mt-1 text-sm text-text-secondary">{user?.company}</div>
+                  <div className="mt-1 text-sm text-text-secondary">{user?.company || user?.email}</div>
                 </div>
-                {unreadCount ? (
-                  <div className="rounded-full bg-primary/15 px-2 py-1 text-xs text-primary">
-                    {unreadCount}
-                  </div>
-                ) : null}
               </button>
 
               <div className="grid gap-2 overflow-y-auto">

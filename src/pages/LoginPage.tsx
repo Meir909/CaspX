@@ -12,13 +12,13 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
   const { mutate, isPending, error } = useLogin()
-  const [email, setEmail] = useState('alisher@caspx.kz')
-  const [password, setPassword] = useState('12345678')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   return (
     <AuthShell
       title="Вход в CaspX"
-      subtitle="Откройте заказы, перевозчиков, аналитику и мониторинг маршрутов в одном интерфейсе."
+      subtitle="Только реальная авторизация через backend."
     >
       <Card>
         <CardHeader>
@@ -43,10 +43,7 @@ export default function LoginPage() {
             <label className="block space-y-2">
               <span className="text-sm text-text-secondary">Email</span>
               <div className="relative">
-                <Mail
-                  size={16}
-                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
+                <Mail size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
                 <Input
                   className="pl-10"
                   type="email"
@@ -60,10 +57,7 @@ export default function LoginPage() {
             <label className="block space-y-2">
               <span className="text-sm text-text-secondary">Пароль</span>
               <div className="relative">
-                <KeyRound
-                  size={16}
-                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
+                <KeyRound size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary" />
                 <Input
                   className="pl-10"
                   type="password"
@@ -78,23 +72,15 @@ export default function LoginPage() {
               {isPending ? 'Входим...' : 'Войти'}
               {!isPending ? <ArrowRight size={16} className="ml-2" /> : null}
             </Button>
-            {error ? (
-              <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
-                {error.message}
-              </div>
-            ) : null}
+
+            {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error.message}</div> : null}
           </form>
 
-          <div className="mt-5 space-y-2 text-center text-sm text-text-secondary">
-            <Link to="/forgot-password" className="text-primary transition-colors hover:text-white">
-              Забыли пароль?
+          <div className="mt-5 text-center text-sm text-text-secondary">
+            Нет аккаунта?{' '}
+            <Link to="/register" className="text-primary transition-colors hover:text-white">
+              Регистрация
             </Link>
-            <div>
-              Нет аккаунта?{' '}
-              <Link to="/register" className="text-primary transition-colors hover:text-white">
-                Регистрация
-              </Link>
-            </div>
           </div>
         </CardContent>
       </Card>

@@ -1,5 +1,4 @@
 import type { CarrierProfile, CarrierVehicle, Order } from '@/types'
-import { api } from '@/api'
 import {
   clearSessionTokens,
   getAccessToken,
@@ -169,6 +168,12 @@ function extractTokens(payload: unknown): SessionTokens | null {
 
 function isUsingLiveApi() {
   return isLiveApiEnabled() && !hasLocalSessionToken()
+}
+
+function assertLiveApi() {
+  if (!isUsingLiveApi()) {
+    throw new Error('Live API недоступен. В приложении отключены демо-подмены, поэтому нужен рабочий backend.')
+  }
 }
 
 async function requestJson<T>(
@@ -363,9 +368,7 @@ function mapVehiclesList(payload: unknown): CarrierVehicle[] {
 export const backendApi = {
   orders: {
     getOrders: async () => {
-      if (!isUsingLiveApi()) {
-        return api.orders.getOrders()
-      }
+      assertLiveApi()
 
       try {
         const payload = await requestJson<unknown>(
@@ -388,9 +391,7 @@ export const backendApi = {
     },
 
     getOrder: async (id: string) => {
-      if (!isUsingLiveApi()) {
-        return api.orders.getOrder(id)
-      }
+      assertLiveApi()
 
       const payload = await requestJson<unknown>(
         `/orders/${id}`,
@@ -412,9 +413,7 @@ export const backendApi = {
       date: string
       cargoImages?: string[]
     }) => {
-      if (!isUsingLiveApi()) {
-        return api.orders.createOrder(data)
-      }
+      assertLiveApi()
 
       const origin = [data.fromCountry, data.from].filter(Boolean).join(', ')
       const destination = [data.toCountry, data.to].filter(Boolean).join(', ')
@@ -445,10 +444,7 @@ export const backendApi = {
     },
 
     getAvailableOrders: async () => {
-      if (!isUsingLiveApi()) {
-        const orders = await api.orders.getOrders()
-        return orders.filter((order) => order.status === 'searching')
-      }
+      assertLiveApi()
 
       const payload = await requestJson<unknown>(
         '/orders/available',
@@ -462,20 +458,7 @@ export const backendApi = {
 
   carrier: {
     getProfile: async () => {
-      if (!isUsingLiveApi()) {
-        return {
-          id: '',
-          userId: '',
-          experienceYears: 0,
-          transportType: 'ROAD',
-          description: undefined,
-          isApproved: false,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          user: undefined,
-          vehiclesCount: 0,
-        } satisfies CarrierProfile
-      }
+      assertLiveApi()
 
       const payload = await requestJson<unknown>(
         '/carrier/profile',
@@ -489,9 +472,7 @@ export const backendApi = {
 
   vehicles: {
     getVehicles: async () => {
-      if (!isUsingLiveApi()) {
-        return [] as CarrierVehicle[]
-      }
+      assertLiveApi()
 
       const payload = await requestJson<unknown>(
         '/vehicles',

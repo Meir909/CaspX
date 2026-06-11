@@ -594,6 +594,12 @@ function isUsingLiveApi() {
   return isLiveApiEnabled() && !hasLocalSessionToken()
 }
 
+function requireLiveApi() {
+  if (!isUsingLiveApi()) {
+    throw new Error('Live API недоступен. Демо-режим в приложении отключен.')
+  }
+}
+
 async function mockLogin(email: string): Promise<User> {
   await delay(300)
   currentUser = { ...currentUser, email }
@@ -648,6 +654,10 @@ async function mockBecomeCarrier(data: BecomeCarrierPayload): Promise<User> {
 
   return currentUser
 }
+
+void mockLogin
+void mockRegister
+void mockBecomeCarrier
 
 async function mockGetOrders() {
   await delay(300)
@@ -720,9 +730,7 @@ async function mockCreateOrder(data: CreateOrderPayload): Promise<Order> {
 export const api = {
   auth: {
     login: async (email: string, password: string): Promise<User> => {
-      if (!isUsingLiveApi()) {
-        return mockLogin(email)
-      }
+      requireLiveApi()
 
       const payload = await requestJson<unknown>(
         '/auth/login',
@@ -744,9 +752,7 @@ export const api = {
     },
 
     register: async (data: Partial<User> & { password?: string }): Promise<User> => {
-      if (!isUsingLiveApi()) {
-        return mockRegister(data)
-      }
+      requireLiveApi()
 
       const name = splitFullName(data.name || '')
 
@@ -803,10 +809,7 @@ export const api = {
     },
 
     logout: async (): Promise<void> => {
-      if (!isUsingLiveApi()) {
-        clearSessionTokens()
-        return
-      }
+      requireLiveApi()
 
       const refreshToken = getRefreshToken()
 
@@ -829,10 +832,7 @@ export const api = {
     },
 
     getProfile: async (): Promise<User> => {
-      if (!isUsingLiveApi()) {
-        await delay(200)
-        return currentUser
-      }
+      requireLiveApi()
 
       const payload = await requestJson<unknown>(
         '/auth/me',
@@ -848,9 +848,7 @@ export const api = {
     },
 
     becomeCarrier: async (data: BecomeCarrierPayload): Promise<User> => {
-      if (!isUsingLiveApi()) {
-        return mockBecomeCarrier(data)
-      }
+      requireLiveApi()
 
       const payload = await requestJson<unknown>(
         '/carrier/apply',

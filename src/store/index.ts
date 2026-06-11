@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import type { Message, Notification, User, UserRole } from '@/types'
-import { appUser, initialMessages, notifications as seedNotifications } from '@/data/mock'
-import { clearSessionTokens, hasSessionTokens, isLiveApiEnabled } from '@/lib/session'
+import { clearSessionTokens, hasSessionTokens } from '@/lib/session'
 
 const ROLE_STORAGE_KEY = 'caspx-role'
 const USER_STORAGE_KEY = 'caspx-user'
@@ -63,14 +62,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
       return
     }
 
-    if (isLiveApiEnabled() || hasSessionTokens()) {
+    if (hasSessionTokens()) {
       set({ user: null, isAuthenticated: false, isReady: false })
       return
     }
 
-    const user = { ...appUser, role: storedRole ?? appUser.role }
-    persistUser(user)
-    set({ user, isAuthenticated: true, isReady: true })
+    set({ user: null, isAuthenticated: false, isReady: true })
   },
   setReady: (value) => set({ isReady: value }),
 }))
@@ -121,7 +118,7 @@ interface NotificationStore {
 }
 
 export const useNotificationStore = create<NotificationStore>((set) => ({
-  notifications: seedNotifications,
+  notifications: [],
   setNotifications: (notifications) => set({ notifications }),
   addNotification: (notification) =>
     set((state) => ({ notifications: [notification, ...state.notifications] })),
@@ -149,7 +146,7 @@ interface ChatStore {
 
 export const useChatStore = create<ChatStore>((set) => ({
   currentChatId: null,
-  messagesByChat: initialMessages,
+  messagesByChat: {},
   setCurrentChat: (id) => set({ currentChatId: id }),
   appendMessage: (chatId, message) =>
     set((state) => ({

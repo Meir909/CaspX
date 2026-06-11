@@ -96,7 +96,7 @@ export default function CreateOrderPage() {
         volume: Number(formData.volume),
       },
       {
-        onSuccess: (order) => navigate(`/carriers?order=${order.id}`),
+        onSuccess: (order) => navigate(`/orders/${order.id}`),
       },
     )
   }
@@ -108,7 +108,7 @@ export default function CreateOrderPage() {
       onSubmit={handleSubmit}
       className="space-y-4"
     >
-      <PageIntro title="Создание заказа" subtitle="Сначала выберите страну, потом город, затем заполните параметры груза" />
+      <PageIntro title="Создание заказа" subtitle="Форма отправляет реальный заказ в backend и сохраняет его в вашем списке" />
 
       <SectionCard title="Маршрут">
         <div className="space-y-4">
@@ -222,7 +222,7 @@ export default function CreateOrderPage() {
                 onChange={(event) => setFormData((prev) => ({ ...prev, date: event.target.value }))}
               />
             </div>
-            <p className="text-xs text-text-secondary">Минимум сегодняшняя дата, максимум 31.12.2030. Год допускается только в формате YYYY.</p>
+            <p className="text-xs text-text-secondary">Минимум сегодняшняя дата, максимум 31.12.2030. Год только в формате YYYY.</p>
           </div>
         </div>
       </SectionCard>
@@ -270,36 +270,11 @@ export default function CreateOrderPage() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Сводка">
-        <div className="space-y-3 text-sm">
-          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
-            <span className="text-text-secondary">Маршрут</span>
-            <span>
-              {formData.fromCountry}, {formData.from} → {formData.toCountry}, {formData.to}
-            </span>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
-            <span className="text-text-secondary">Тип груза</span>
-            <span>{formData.cargoType}</span>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
-            <span className="text-text-secondary">Вес и объем</span>
-            <span>
-              {formData.weight} т / {formData.volume} м3
-            </span>
-          </div>
-          <div className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3">
-            <span className="text-text-secondary">Дата подачи</span>
-            <span>{formData.date}</span>
-          </div>
-        </div>
-      </SectionCard>
-
       {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error}</div> : null}
       {requestError ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{requestError.message}</div> : null}
 
       <Button className="w-full" size="lg" type="submit" disabled={isPending}>
-        {isPending ? 'Создаем заказ...' : 'Найти перевозчика'}
+        {isPending ? 'Создаем заказ...' : 'Создать заказ'}
       </Button>
     </motion.form>
   )

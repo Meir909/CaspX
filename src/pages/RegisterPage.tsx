@@ -20,12 +20,12 @@ const roleOptions: Array<{
   {
     value: 'user',
     label: 'Заказчик',
-    description: 'Создание заказов, поиск перевозчиков и отслеживание грузов.',
+    description: 'Создание заказов и контроль своих перевозок.',
   },
   {
     value: 'carrier',
     label: 'Перевозчик',
-    description: 'Подача заявки перевозчика, управление транспортом и доступными рейсами.',
+    description: 'Регистрация перевозчика и работа с доступными заказами после одобрения.',
   },
 ]
 
@@ -34,17 +34,17 @@ export default function RegisterPage() {
   const login = useAuthStore((state) => state.login)
   const { mutate, isPending, error } = useRegister()
   const [formData, setFormData] = useState({
-    name: 'Алишер А.',
-    email: 'alisher@caspx.kz',
-    phone: '+7 701 123 45 67',
-    password: '12345678',
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
     role: 'user' as RegisterRole,
   })
 
   return (
     <AuthShell
       title="Регистрация"
-      subtitle="Создайте аккаунт, чтобы оформлять перевозки, отслеживать грузы и работать в CaspX под своей ролью."
+      subtitle="Создайте реальный аккаунт, который будет работать только через backend API."
     >
       <Card>
         <CardHeader>
@@ -95,9 +95,7 @@ export default function RegisterPage() {
               <Select
                 className="pl-10"
                 value={formData.role}
-                onChange={(event) =>
-                  setFormData((prev) => ({ ...prev, role: event.target.value as RegisterRole }))
-                }
+                onChange={(event) => setFormData((prev) => ({ ...prev, role: event.target.value as RegisterRole }))}
               >
                 {roleOptions.map((role) => (
                   <option key={role.value} value={role.value}>
@@ -122,7 +120,7 @@ export default function RegisterPage() {
             </AuthField>
 
             <Button className="w-full" type="submit" disabled={isPending}>
-              {isPending ? 'Создаём...' : 'Зарегистрироваться'}
+              {isPending ? 'Создаем...' : 'Зарегистрироваться'}
               {!isPending ? <ArrowRight size={16} className="ml-2" /> : null}
             </Button>
 
