@@ -46,7 +46,7 @@ export default function HomePage() {
             <p className="mt-2 max-w-[220px] text-sm text-slate-300">
               {user?.role === 'carrier'
                 ? 'Смотрите доступные заявки и работайте только с данными, пришедшими из backend.'
-                : 'Создайте новую заявку и дальше отслеживайте ее в списке заказов и на карте маршрута.'}
+                : 'Создайте новую заявку и затем отслеживайте её в списке заказов и на карте маршрута.'}
             </p>
             <div className="mt-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-white">
               <ArrowRight size={18} />

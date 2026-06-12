@@ -57,9 +57,7 @@ export default function CarrierDashboardPage() {
                       {order.from} → {order.to}
                     </div>
                   </div>
-                  <span className="text-sm text-primary">
-                    {order.status === 'in_progress' ? 'В пути' : 'Подтвержден'}
-                  </span>
+                  <span className="text-sm text-primary">{order.status === 'in_progress' ? 'В пути' : 'Подтвержден'}</span>
                 </div>
                 <div className="mt-3 text-sm text-text-secondary">{formatMoney(order.price)}</div>
               </div>
