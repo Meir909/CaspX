@@ -2926,6 +2926,494 @@
           "Vehicles"
         ]
       }
+    },
+    "/routes/calculate": {
+      "post": {
+        "operationId": "RoutesController_calculate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculateRouteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalculateRouteResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Coordinates are missing or order has no coordinates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Order is not available for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "OpenRouteService request failed or returned invalid data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Calculate a route with OpenRouteService and return route geometry as JSON",
+        "tags": [
+          "Routes"
+        ]
+      }
+    },
+    "/uploads/avatar": {
+      "post": {
+        "operationId": "UploadsController_uploadAvatar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadAvatarResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid image type, size, or missing file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload current user avatar and update avatarUrl",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/uploads/cargo": {
+      "post": {
+        "operationId": "UploadsController_uploadCargoPhoto",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "orderId",
+                  "file"
+                ],
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "example": "cmmi83qoc00000kirq90ord"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadOrderMediaResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid image type, size, payload, or missing file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Order is not available for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload cargo image and update order cargoPhotoUrl",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/uploads/product": {
+      "post": {
+        "operationId": "UploadsController_uploadProductPhoto",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "orderId",
+                  "file"
+                ],
+                "properties": {
+                  "orderId": {
+                    "type": "string",
+                    "example": "cmmi83qoc00000kirq90ord"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadOrderMediaResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid image type, size, payload, or missing file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Order is not available for this user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload product image and append it to order productPhotoUrls",
+        "tags": [
+          "Uploads"
+        ]
+      }
+    },
+    "/checkpoint-loads/current": {
+      "get": {
+        "operationId": "CheckpointLoadsController_getCurrent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckpointLoadCurrentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No checkpoint load snapshots found. Run sync first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Return the latest normalized checkpoint load snapshot scraped from public Qoldau pages",
+        "tags": [
+          "Checkpoint Loads"
+        ]
+      }
+    },
+    "/checkpoint-loads/sync": {
+      "post": {
+        "operationId": "CheckpointLoadsController_sync",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckpointLoadSyncResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Scrape public Qoldau pages and persist a fresh checkpoint load snapshot batch",
+        "tags": [
+          "Checkpoint Loads"
+        ]
+      }
+    },
+    "/predictions/land": {
+      "post": {
+        "operationId": "PredictionsController_predictLand",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LandPredictionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LandPredictionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a land route logistics prediction for an order",
+        "tags": [
+          "Predictions"
+        ]
+      }
+    },
+    "/predictions/marine": {
+      "post": {
+        "operationId": "PredictionsController_predictMarine",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarinePredictionRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarinePredictionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get a marine route logistics prediction (stub)",
+        "tags": [
+          "Predictions"
+        ]
+      }
     }
   },
   "info": {
@@ -3355,9 +3843,25 @@
             "type": "string",
             "example": "Aktau"
           },
+          "originCity": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "originCountry": {
+            "type": "string",
+            "example": "Kazakhstan"
+          },
           "destination": {
             "type": "string",
             "example": "Kuryk Port"
+          },
+          "destinationCity": {
+            "type": "string",
+            "example": "Kuryk"
+          },
+          "destinationCountry": {
+            "type": "string",
+            "example": "Kazakhstan"
           },
           "originLat": {
             "type": "number",
@@ -3374,6 +3878,20 @@
           "destinationLng": {
             "type": "number",
             "example": 51.6814
+          },
+          "cargoPhotoUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/orders/cargo-photo.jpg"
+          },
+          "productPhotoUrls": {
+            "example": [
+              "https://cdn.example.com/orders/photo-1.jpg",
+              "https://cdn.example.com/orders/photo-2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "comment": {
             "type": "string",
@@ -3448,9 +3966,29 @@
             "type": "string",
             "example": "Aktau"
           },
+          "originCity": {
+            "type": "object",
+            "example": "Aktau",
+            "nullable": true
+          },
+          "originCountry": {
+            "type": "object",
+            "example": "Kazakhstan",
+            "nullable": true
+          },
           "destination": {
             "type": "string",
             "example": "Kuryk Port"
+          },
+          "destinationCity": {
+            "type": "object",
+            "example": "Kuryk",
+            "nullable": true
+          },
+          "destinationCountry": {
+            "type": "object",
+            "example": "Kazakhstan",
+            "nullable": true
           },
           "originLat": {
             "type": "object",
@@ -3471,6 +4009,21 @@
             "type": "object",
             "example": 51.6814,
             "nullable": true
+          },
+          "cargoPhotoUrl": {
+            "type": "object",
+            "example": "https://cdn.example.com/orders/cargo-photo.jpg",
+            "nullable": true
+          },
+          "productPhotoUrls": {
+            "example": [
+              "https://cdn.example.com/orders/photo-1.jpg",
+              "https://cdn.example.com/orders/photo-2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "comment": {
             "type": "object",
@@ -3524,11 +4077,17 @@
           "weight",
           "volume",
           "origin",
+          "originCity",
+          "originCountry",
           "destination",
+          "destinationCity",
+          "destinationCountry",
           "originLat",
           "originLng",
           "destinationLat",
           "destinationLng",
+          "cargoPhotoUrl",
+          "productPhotoUrls",
           "comment",
           "estimatedPrice",
           "estimatedDeliveryTime",
@@ -3588,9 +4147,25 @@
             "type": "string",
             "example": "Aktau"
           },
+          "originCity": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "originCountry": {
+            "type": "string",
+            "example": "Kazakhstan"
+          },
           "destination": {
             "type": "string",
             "example": "Kuryk Port"
+          },
+          "destinationCity": {
+            "type": "string",
+            "example": "Kuryk"
+          },
+          "destinationCountry": {
+            "type": "string",
+            "example": "Kazakhstan"
           },
           "originLat": {
             "type": "number",
@@ -3607,6 +4182,20 @@
           "destinationLng": {
             "type": "number",
             "example": 51.6814
+          },
+          "cargoPhotoUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/orders/cargo-photo.jpg"
+          },
+          "productPhotoUrls": {
+            "example": [
+              "https://cdn.example.com/orders/photo-1.jpg",
+              "https://cdn.example.com/orders/photo-2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "comment": {
             "type": "string",
@@ -4087,9 +4676,29 @@
             "type": "string",
             "example": "Aktau"
           },
+          "originCity": {
+            "type": "object",
+            "example": "Aktau",
+            "nullable": true
+          },
+          "originCountry": {
+            "type": "object",
+            "example": "Kazakhstan",
+            "nullable": true
+          },
           "destination": {
             "type": "string",
             "example": "Kuryk Port"
+          },
+          "destinationCity": {
+            "type": "object",
+            "example": "Kuryk",
+            "nullable": true
+          },
+          "destinationCountry": {
+            "type": "object",
+            "example": "Kazakhstan",
+            "nullable": true
           },
           "originLat": {
             "type": "object",
@@ -4110,6 +4719,21 @@
             "type": "object",
             "example": 51.6814,
             "nullable": true
+          },
+          "cargoPhotoUrl": {
+            "type": "object",
+            "example": "https://cdn.example.com/orders/cargo-photo.jpg",
+            "nullable": true
+          },
+          "productPhotoUrls": {
+            "example": [
+              "https://cdn.example.com/orders/photo-1.jpg",
+              "https://cdn.example.com/orders/photo-2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "comment": {
             "type": "object",
@@ -4190,11 +4814,17 @@
           "weight",
           "volume",
           "origin",
+          "originCity",
+          "originCountry",
           "destination",
+          "destinationCity",
+          "destinationCountry",
           "originLat",
           "originLng",
           "destinationLat",
           "destinationLng",
+          "cargoPhotoUrl",
+          "productPhotoUrls",
           "comment",
           "estimatedPrice",
           "estimatedDeliveryTime",
@@ -4291,9 +4921,25 @@
             "type": "string",
             "example": "Aktau"
           },
+          "originCity": {
+            "type": "string",
+            "example": "Aktau"
+          },
+          "originCountry": {
+            "type": "string",
+            "example": "Kazakhstan"
+          },
           "destination": {
             "type": "string",
             "example": "Kuryk Port"
+          },
+          "destinationCity": {
+            "type": "string",
+            "example": "Kuryk"
+          },
+          "destinationCountry": {
+            "type": "string",
+            "example": "Kazakhstan"
           },
           "originLat": {
             "type": "number",
@@ -4318,6 +4964,20 @@
             "example": 51.6814,
             "minimum": -180,
             "maximum": 180
+          },
+          "cargoPhotoUrl": {
+            "type": "string",
+            "example": "https://cdn.example.com/orders/cargo-photo.jpg"
+          },
+          "productPhotoUrls": {
+            "example": [
+              "https://cdn.example.com/orders/photo-1.jpg",
+              "https://cdn.example.com/orders/photo-2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "comment": {
             "type": "string",
@@ -4677,6 +5337,343 @@
             "example": "https://example.com/vehicle.jpg"
           }
         }
+      },
+      "CalculateRouteDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord",
+            "description": "Order id. If coordinates are omitted, origin/destination coordinates are taken from the order."
+          },
+          "startLat": {
+            "type": "number",
+            "example": 43.65
+          },
+          "startLng": {
+            "type": "number",
+            "example": 51.17
+          },
+          "endLat": {
+            "type": "number",
+            "example": 40.37
+          },
+          "endLng": {
+            "type": "number",
+            "example": 49.89
+          }
+        }
+      },
+      "RouteGeometryDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "LineString"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "format": "double"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "example": [
+              [51.17, 43.65],
+              [49.89, 40.37]
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "CalculateRouteResponseDto": {
+        "type": "object",
+        "properties": {
+          "routeId": {
+            "type": "object",
+            "example": "route_01",
+            "nullable": true
+          },
+          "orderId": {
+            "type": "object",
+            "example": "cmmi83qoc00000kirq90ord",
+            "nullable": true
+          },
+          "distanceKm": {
+            "type": "number",
+            "example": 682.12
+          },
+          "durationMinutes": {
+            "type": "number",
+            "example": 740.54
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/RouteGeometryDto"
+          }
+        },
+        "required": [
+          "routeId",
+          "orderId",
+          "distanceKm",
+          "durationMinutes",
+          "geometry"
+        ]
+      },
+      "UploadAvatarResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://api-angels.byapex.dev/uploads/avatars/avatar-123.jpg"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          }
+        },
+        "required": [
+          "url",
+          "user"
+        ]
+      },
+      "UploadOrderMediaResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://api-angels.byapex.dev/uploads/cargo/cargo-123.jpg"
+          },
+          "order": {
+            "$ref": "#/components/schemas/OrderResponseDto"
+          }
+        },
+        "required": [
+          "url",
+          "order"
+        ]
+      },
+      "CheckpointLoadItemDto": {
+        "type": "object",
+        "properties": {
+          "checkpointName": {
+            "type": "string",
+            "example": "Достык - Алашанькоу"
+          },
+          "borderCountry": {
+            "type": "object",
+            "example": "Китай",
+            "nullable": true
+          },
+          "region": {
+            "type": "object",
+            "example": "область Жетісу, Алакольский район",
+            "nullable": true
+          },
+          "waitingAreaCount": {
+            "type": "number",
+            "example": 152
+          },
+          "activeTruckNumbers": {
+            "example": [
+              "AM8295H",
+              "B023TY797"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "entryTimes": {
+            "example": [
+              "12.06.2026 03:01:47",
+              "12.06.2026 04:10:45"
+            ],
+            "description": "Entry timestamps of trucks at this checkpoint (within last 48h)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string",
+            "description": "Public source used for the snapshot",
+            "example": "qoldau"
+          }
+        },
+        "required": [
+          "checkpointName",
+          "borderCountry",
+          "region",
+          "waitingAreaCount",
+          "activeTruckNumbers",
+          "entryTimes",
+          "source"
+        ]
+      },
+      "CheckpointLoadCurrentResponseDto": {
+        "type": "object",
+        "properties": {
+          "syncBatchId": {
+            "type": "string",
+            "example": "0f1d3996-1b73-4d40-833d-bb57b2d9709f"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "example": "2026-06-12T00:10:00.000Z"
+          },
+          "checkpoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckpointLoadItemDto"
+            }
+          }
+        },
+        "required": [
+          "syncBatchId",
+          "fetchedAt",
+          "checkpoints"
+        ]
+      },
+      "CheckpointLoadSyncResponseDto": {
+        "type": "object",
+        "properties": {
+          "syncBatchId": {
+            "type": "string",
+            "example": "0f1d3996-1b73-4d40-833d-bb57b2d9709f"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "example": "2026-06-12T00:10:00.000Z"
+          },
+          "checkpointsCount": {
+            "type": "number",
+            "example": 49
+          },
+          "activeWaitingTotal": {
+            "type": "number",
+            "example": 1085
+          }
+        },
+        "required": [
+          "syncBatchId",
+          "fetchedAt",
+          "checkpointsCount",
+          "activeWaitingTotal"
+        ]
+      },
+      "LandPredictionRequestDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord"
+          }
+        },
+        "required": [
+          "orderId"
+        ]
+      },
+      "LandPredictionResponseDto": {
+        "type": "object",
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "example": "cmmi83qoc00000kirq90ord"
+          },
+          "recommendation": {
+            "type": "string",
+            "example": "wait"
+          },
+          "riskLevel": {
+            "type": "string",
+            "example": "high"
+          },
+          "bestDepartureTime": {
+            "type": "string",
+            "example": "2026-06-13T08:00:00.000Z"
+          },
+          "expectedDelayMinutes": {
+            "type": "number",
+            "example": 140
+          },
+          "shortExplanation": {
+            "type": "string",
+            "example": "Высокая загруженность КПП Темир Баба и ожидаются осадки."
+          }
+        },
+        "required": [
+          "orderId",
+          "recommendation",
+          "riskLevel",
+          "bestDepartureTime",
+          "expectedDelayMinutes",
+          "shortExplanation"
+        ]
+      },
+      "MarinePredictionRequestDto": {
+        "type": "object",
+        "properties": {
+          "originLat": {
+            "type": "number",
+            "example": 43.65
+          },
+          "originLng": {
+            "type": "number",
+            "example": 51.17
+          },
+          "destLat": {
+            "type": "number",
+            "example": 40.37
+          },
+          "destLng": {
+            "type": "number",
+            "example": 49.89
+          }
+        },
+        "required": [
+          "originLat",
+          "originLng",
+          "destLat",
+          "destLng"
+        ]
+      },
+      "MarinePredictionResponseDto": {
+        "type": "object",
+        "properties": {
+          "recommendation": {
+            "type": "string",
+            "example": "send"
+          },
+          "riskLevel": {
+            "type": "string",
+            "example": "low"
+          },
+          "bestDepartureTime": {
+            "type": "string",
+            "example": "2026-06-12T08:00:00.000Z"
+          },
+          "expectedDelayMinutes": {
+            "type": "number",
+            "example": 0
+          },
+          "shortExplanation": {
+            "type": "string",
+            "example": "Морской маршрут свободен."
+          }
+        },
+        "required": [
+          "recommendation",
+          "riskLevel",
+          "bestDepartureTime",
+          "expectedDelayMinutes",
+          "shortExplanation"
+        ]
       }
     }
   }
