@@ -12,18 +12,17 @@ import CarrierProfileEditPage from '@/pages/CarrierProfileEditPage'
 import CarrierTransportPage from '@/pages/CarrierTransportPage'
 import CarrierVehicleEditPage from '@/pages/CarrierVehicleEditPage'
 import CreateOrderPage from '@/pages/CreateOrderPage'
-import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
 import OrderDetailsPage from '@/pages/OrderDetailsPage'
 import OrderHistoryPage from '@/pages/OrderHistoryPage'
+import MapPage from '@/pages/MapPage'
 import OrderTrackingPage from '@/pages/OrderTrackingPage'
 import OrdersPage from '@/pages/OrdersPage'
 import PrivacyPage from '@/pages/PrivacyPage'
 import ProfilePage from '@/pages/ProfilePage'
 import ProfileEditPage from '@/pages/ProfileEditPage'
 import RegisterPage from '@/pages/RegisterPage'
-import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import SupportPage from '@/pages/SupportPage'
 import TermsPage from '@/pages/TermsPage'
 
@@ -89,14 +88,13 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/login', element: <GuestRoute><LoginPage /></GuestRoute> },
       { path: '/register', element: <GuestRoute><RegisterPage /></GuestRoute> },
-      { path: '/forgot-password', element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
-      { path: '/reset-password', element: <GuestRoute><ResetPasswordPage /></GuestRoute> },
     ],
   },
   {
     element: <MainLayout />,
     children: [
       { path: '/', element: <ProtectedRoute><HomePage /></ProtectedRoute> },
+      { path: '/map', element: <ProtectedRoute><MapPage /></ProtectedRoute> },
       { path: '/create-order', element: <ProtectedRoute><CreateOrderPage /></ProtectedRoute> },
       { path: '/orders', element: <ProtectedRoute><OrdersPage /></ProtectedRoute> },
       { path: '/orders/:id', element: <ProtectedRoute><OrderDetailsPage /></ProtectedRoute> },

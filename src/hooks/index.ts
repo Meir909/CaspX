@@ -126,6 +126,23 @@ export const useUploadAvatar = () => {
   })
 }
 
+export const useUploadVehiclePhoto = () =>
+  useMutation({
+    mutationFn: backendApi.uploads.uploadVehiclePhoto,
+  })
+
+export const useUpdateUserProfile = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: api.auth.updateProfile,
+    onSuccess: (user) => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.setQueryData(['profile'], user)
+    },
+  })
+}
+
 export const useTrackingTimeline = (orderId?: string) =>
   useQuery({
     queryKey: ['orders', orderId, 'tracking'],
@@ -187,16 +204,6 @@ export const useLogin = () =>
 export const useRegister = () =>
   useMutation({
     mutationFn: api.auth.register,
-  })
-
-export const useForgotPassword = () =>
-  useMutation({
-    mutationFn: api.auth.forgotPassword,
-  })
-
-export const useResetPassword = () =>
-  useMutation({
-    mutationFn: api.auth.resetPassword,
   })
 
 export const useLogout = () =>

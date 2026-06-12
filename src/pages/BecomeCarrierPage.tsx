@@ -3,8 +3,8 @@ import { Camera, FileCheck2, IdCard, Route, Truck, UserCircle2 } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
-import { useBecomeCarrier, useCreateVehicle } from '@/hooks'
-import { createImageCollageDataUrl, readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
+import { useBecomeCarrier, useCreateVehicle, useUploadVehiclePhoto } from '@/hooks'
+import { resizeImageToFile } from '@/lib/utils'
 import { VehiclePlateInput } from '@/components/ui/vehicle-plate-input'
 import { useAuthStore } from '@/store'
 
@@ -14,8 +14,10 @@ export default function BecomeCarrierPage() {
   const updateProfile = useAuthStore((state) => state.updateProfile)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [transportPreviews, setTransportPreviews] = useState<string[]>([])
+  const [transportPreview, setTransportPreview] = useState('')
+  const [transportImageUrl, setTransportImageUrl] = useState('')
   const createVehicle = useCreateVehicle()
+  const uploadVehiclePhoto = useUploadVehiclePhoto()
   const [formData, setFormData] = useState({
     company: 'TOO WestTrans KZ',
     businessId: '123456789012',
@@ -25,7 +27,6 @@ export default function BecomeCarrierPage() {
     volume: '82',
     plate: 'KZ 123 AB 12',
     transportType: 'Тентовый',
-    transportImage: '',
   })
   const { mutate, isPending, error: requestError } = useBecomeCarrier()
 
@@ -48,8 +49,8 @@ export default function BecomeCarrierPage() {
       onSubmit={(event) => {
         event.preventDefault()
 
-        if (!formData.transportImage) {
-          setError('Нужно обязательно прикрепить от 1 до 3 фото транспорта.')
+        if (!transportImageUrl) {
+          setError('Нужно обязательно прикрепить фото транспорта.')
           return
         }
 
@@ -64,10 +65,10 @@ export default function BecomeCarrierPage() {
                 plateNumber: formData.plate,
                 capacityTons: Number(formData.capacity),
                 cargoVolume: Number(formData.volume),
-                vehicleImageUrl: formData.transportImage,
+                vehicleImageUrl: transportImageUrl,
               })
             } catch {
-              // Carrier application stays successful even if the first vehicle card needs to be added later.
+              // Application remains successful even if the vehicle card is completed later.
             }
 
             updateProfile({
@@ -127,10 +128,7 @@ export default function BecomeCarrierPage() {
             <span className="text-sm text-text-secondary">Госномер</span>
             <VehiclePlateInput value={formData.plate} onChange={(plate) => setFormData((prev) => ({ ...prev, plate }))} />
           </label>
-        </div>
-
-        <div className="mt-3">
-          <label className="block space-y-2">
+          <label className="col-span-2 block space-y-2">
             <span className="text-sm text-text-secondary">Тип транспорта</span>
             <Input value={formData.transportType} onChange={(event) => setFormData((prev) => ({ ...prev, transportType: event.target.value }))} />
           </label>
@@ -141,60 +139,45 @@ export default function BecomeCarrierPage() {
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-6 text-center">
           <Camera size={20} className="mb-2 text-primary" />
           <span className="text-sm text-white">Загрузить фото транспорта</span>
-          <span className="mt-1 text-xs text-text-secondary">Минимум 1 фото, максимум 3 фото</span>
+          <span className="mt-1 text-xs text-text-secondary">Один файл, он сразу уйдет в backend.</span>
           <input
             type="file"
             accept="image/*"
-            multiple
             className="hidden"
             onChange={async (event) => {
-              const files = Array.from(event.target.files ?? [])
+              const file = event.target.files?.[0]
+              if (!file) return
 
-              if (files.length < 1 || files.length > 3) {
-                setError('Нужно прикрепить от 1 до 3 фото транспорта.')
-                return
+              try {
+                const resized = await resizeImageToFile(file, {
+                  width: 1280,
+                  height: 960,
+                  quality: 0.82,
+                  fileName: 'vehicle.jpg',
+                })
+                const result = await uploadVehiclePhoto.mutateAsync(resized)
+                setTransportImageUrl(result.url)
+                setTransportPreview(URL.createObjectURL(resized))
+                setError('')
+              } catch (uploadError) {
+                setError(uploadError instanceof Error ? uploadError.message : 'Не удалось загрузить фото транспорта.')
               }
-
-              const resized = await Promise.all(
-                files.map((file, index) =>
-                  resizeImageToFile(file, {
-                    width: 1280,
-                    height: 960,
-                    quality: 0.78,
-                    fileName: `vehicle-${index + 1}.jpg`,
-                  }),
-                ),
-              )
-
-              const previews = await Promise.all(resized.map((file) => readFileAsDataUrl(file)))
-              const collage = await createImageCollageDataUrl(resized, {
-                width: 1280,
-                height: 960,
-                quality: 0.76,
-              })
-
-              setError('')
-              setTransportPreviews(previews)
-              setFormData((prev) => ({ ...prev, transportImage: collage }))
             }}
           />
         </label>
 
-        {transportPreviews.length ? (
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            {transportPreviews.map((image, index) => (
-              <div key={`${index}-${image.slice(0, 20)}`} className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
-                <img src={image} alt={`transport-${index + 1}`} className="h-24 w-full object-cover" />
-              </div>
-            ))}
+        {transportPreview ? (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
+            <img src={transportPreview} alt="transport-preview" className="h-52 w-full object-cover" />
           </div>
         ) : null}
       </SectionCard>
 
       {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error}</div> : null}
       {requestError ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{requestError.message}</div> : null}
+      {createVehicle.error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{createVehicle.error.message}</div> : null}
 
-      <Button className="w-full" type="submit" disabled={isPending}>
+      <Button className="w-full" type="submit" disabled={isPending || uploadVehiclePhoto.isPending || createVehicle.isPending}>
         {isPending ? 'Отправка...' : 'Отправить на модерацию'}
       </Button>
     </form>

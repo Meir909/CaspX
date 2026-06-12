@@ -75,6 +75,11 @@ type UploadAvatarResult = {
   user?: unknown
 }
 
+type UploadVehiclePhotoResult = {
+  url: string
+  vehicle?: unknown
+}
+
 type UploadOrderMediaResult = {
   url: string
   order?: unknown
@@ -407,7 +412,7 @@ function mapOrder(payload: unknown): Order {
     ],
     trackingEvents: [
       { time: 'Сейчас', title: 'Заказ получен от backend', location: originRaw },
-      { time: 'Ожидается', title: 'Ожидание realtime tracking', location: destinationRaw },
+      { time: 'Ожидается', title: 'Ожидание обновлений tracking', location: destinationRaw },
     ],
     cargoImages,
     progressLabel: '0 км',
@@ -944,6 +949,19 @@ export const backendApi = {
 
       return requestJson<UploadAvatarResult>(
         '/uploads/avatar',
+        {
+          method: 'POST',
+          body: createUploadBody(file),
+        },
+        { auth: true },
+      )
+    },
+
+    uploadVehiclePhoto: async (file: File) => {
+      assertLiveApi()
+
+      return requestJson<UploadVehiclePhotoResult>(
+        '/uploads/vehicle',
         {
           method: 'POST',
           body: createUploadBody(file),

@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard, TruckIllustration } from '@/components/app/primitives'
-import { useCreateVehicle, useCarrierVehicles } from '@/hooks'
-import { createImageCollageDataUrl, readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
+import { useCarrierVehicles, useCreateVehicle, useUploadVehiclePhoto } from '@/hooks'
+import { resizeImageToFile } from '@/lib/utils'
 import { VehiclePlateInput } from '@/components/ui/vehicle-plate-input'
 
 export default function CarrierTransportPage() {
@@ -14,9 +14,11 @@ export default function CarrierTransportPage() {
   const vehiclesQuery = useCarrierVehicles()
   const vehicles = vehiclesQuery.data ?? []
   const createVehicle = useCreateVehicle()
+  const uploadVehiclePhoto = useUploadVehiclePhoto()
   const [isCreating, setIsCreating] = useState(false)
   const [formError, setFormError] = useState('')
-  const [vehiclePreviews, setVehiclePreviews] = useState<string[]>([])
+  const [vehicleImageUrl, setVehicleImageUrl] = useState('')
+  const [vehiclePreview, setVehiclePreview] = useState('')
   const [formData, setFormData] = useState({
     type: 'TRUCK',
     brand: '',
@@ -25,7 +27,6 @@ export default function CarrierTransportPage() {
     plateNumber: '',
     capacityTons: '',
     cargoVolume: '',
-    vehicleImageUrl: '',
   })
 
   const resetForm = () => {
@@ -37,9 +38,9 @@ export default function CarrierTransportPage() {
       plateNumber: '',
       capacityTons: '',
       cargoVolume: '',
-      vehicleImageUrl: '',
     })
-    setVehiclePreviews([])
+    setVehicleImageUrl('')
+    setVehiclePreview('')
   }
 
   const submitVehicle = (event: React.FormEvent) => {
@@ -51,8 +52,13 @@ export default function CarrierTransportPage() {
       return
     }
 
+    if (!vehicleImageUrl) {
+      setFormError('Загрузите фото транспорта.')
+      return
+    }
+
     if (!Number.isFinite(year) || String(year).length !== 4 || year < 1950 || year > 2030) {
-      setFormError('Год транспорта должен быть четырехзначным и в диапазоне 1950-2030.')
+      setFormError('Год транспорта должен быть четырёхзначным и в диапазоне 1950-2030.')
       return
     }
 
@@ -65,7 +71,7 @@ export default function CarrierTransportPage() {
         plateNumber: formData.plateNumber,
         capacityTons: Number(formData.capacityTons),
         cargoVolume: Number(formData.cargoVolume),
-        vehicleImageUrl: formData.vehicleImageUrl || undefined,
+        vehicleImageUrl,
       },
       {
         onSuccess: () => {
@@ -126,59 +132,43 @@ export default function CarrierTransportPage() {
             <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-5 text-center">
               <Camera size={20} className="mb-2 text-primary" />
               <span className="text-sm text-white">Фото транспорта</span>
-              <span className="mt-1 text-xs text-text-secondary">Можно прикрепить от 1 до 3 фото. На backend уйдет аккуратный collage-preview.</span>
+              <span className="mt-1 text-xs text-text-secondary">Один файл, он будет уменьшен и загружен в backend.</span>
               <input
                 type="file"
                 accept="image/*"
-                multiple
                 className="hidden"
                 onChange={async (event) => {
-                  const files = Array.from(event.target.files ?? [])
+                  const file = event.target.files?.[0]
+                  if (!file) return
 
-                  if (files.length < 1 || files.length > 3) {
-                    setFormError('Для транспорта можно прикрепить от 1 до 3 фото.')
-                    return
+                  try {
+                    const resized = await resizeImageToFile(file, {
+                      width: 1280,
+                      height: 960,
+                      quality: 0.82,
+                      fileName: 'vehicle.jpg',
+                    })
+                    const result = await uploadVehiclePhoto.mutateAsync(resized)
+                    setVehicleImageUrl(result.url)
+                    setVehiclePreview(URL.createObjectURL(resized))
+                    setFormError('')
+                  } catch (uploadError) {
+                    setFormError(uploadError instanceof Error ? uploadError.message : 'Не удалось загрузить фото транспорта.')
                   }
-
-                  const resized = await Promise.all(
-                    files.map((file, index) =>
-                      resizeImageToFile(file, {
-                        width: 1280,
-                        height: 960,
-                        quality: 0.78,
-                        fileName: `vehicle-${index + 1}.jpg`,
-                      }),
-                    ),
-                  )
-
-                  const previews = await Promise.all(resized.map((file) => readFileAsDataUrl(file)))
-                  const collage = await createImageCollageDataUrl(resized, {
-                    width: 1280,
-                    height: 960,
-                    quality: 0.76,
-                  })
-
-                  setFormError('')
-                  setVehiclePreviews(previews)
-                  setFormData((prev) => ({ ...prev, vehicleImageUrl: collage }))
                 }}
               />
             </label>
 
-            {vehiclePreviews.length ? (
-              <div className="grid grid-cols-3 gap-3">
-                {vehiclePreviews.map((image, index) => (
-                  <div key={`${index}-${image.slice(0, 20)}`} className="overflow-hidden rounded-[20px] border border-white/5 bg-white/[0.03]">
-                    <img src={image} alt={`vehicle-preview-${index + 1}`} className="h-24 w-full object-cover" />
-                  </div>
-                ))}
+            {vehiclePreview ? (
+              <div className="overflow-hidden rounded-[20px] border border-white/5 bg-white/[0.03]">
+                <img src={vehiclePreview} alt="vehicle-preview" className="h-52 w-full object-cover" />
               </div>
             ) : null}
 
             {formError ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{formError}</div> : null}
             {createVehicle.error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{createVehicle.error.message}</div> : null}
 
-            <Button className="w-full" type="submit" disabled={createVehicle.isPending}>
+            <Button className="w-full" type="submit" disabled={createVehicle.isPending || uploadVehiclePhoto.isPending}>
               {createVehicle.isPending ? 'Сохраняем...' : 'Сохранить транспорт'}
             </Button>
           </form>

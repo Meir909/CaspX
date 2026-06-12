@@ -4,7 +4,8 @@ import { Camera, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageIntro, SectionCard, UserAvatar } from '@/components/app/primitives'
-import { useUploadAvatar } from '@/hooks'
+import { PhoneInput } from '@/components/ui/phone-input'
+import { useUpdateUserProfile, useUploadAvatar } from '@/hooks'
 import { useAuthStore } from '@/store'
 import { readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
 
@@ -13,25 +14,41 @@ export default function ProfileEditPage() {
   const user = useAuthStore((state) => state.user)
   const updateProfile = useAuthStore((state) => state.updateProfile)
   const uploadAvatar = useUploadAvatar()
+  const saveProfile = useUpdateUserProfile()
   const [name, setName] = useState(user?.name || '')
+  const [phone, setPhone] = useState(user?.phone || '')
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '')
   const [error, setError] = useState('')
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+
     if (!name.trim()) {
       setError('Введите имя пользователя.')
       return
     }
 
-    updateProfile({ name: name.trim(), avatar: avatarPreview || user?.avatar })
-    setError('')
-    navigate('/profile')
+    try {
+      const nextUser = await saveProfile.mutateAsync({
+        name: name.trim(),
+        phone: phone.trim(),
+        avatar: avatarPreview || user?.avatar,
+      })
+
+      updateProfile({
+        ...nextUser,
+        avatar: nextUser.avatar || avatarPreview || user?.avatar,
+      })
+      setError('')
+      navigate('/profile')
+    } catch (submitError) {
+      setError(submitError instanceof Error ? submitError.message : 'Не удалось сохранить профиль.')
+    }
   }
 
   return (
     <div className="space-y-4">
-      <PageIntro title="Редактирование профиля" subtitle="Можно обновить аватар и имя пользователя." />
+      <PageIntro title="Редактирование профиля" subtitle="Можно обновить аватар, имя и телефон." />
 
       <SectionCard>
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -64,8 +81,9 @@ export default function ProfileEditPage() {
 
                     const result = await uploadAvatar.mutateAsync(resized)
                     updateProfile({
-                      avatar: result.url,
                       name,
+                      phone,
+                      avatar: result.url,
                     })
                     setAvatarPreview(result.url)
                   } catch (uploadError) {
@@ -82,18 +100,24 @@ export default function ProfileEditPage() {
           </label>
 
           <label className="block space-y-2">
+            <span className="text-sm text-text-secondary">Телефон</span>
+            <PhoneInput value={phone} onChange={setPhone} />
+          </label>
+
+          <label className="block space-y-2">
             <span className="text-sm text-text-secondary">Email</span>
             <Input value={user?.email || ''} readOnly className="text-text-secondary" />
           </label>
 
           {error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{error}</div> : null}
           {uploadAvatar.error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{uploadAvatar.error.message}</div> : null}
+          {saveProfile.error ? <div className="rounded-2xl bg-rose-500/10 px-4 py-3 text-sm text-rose-300">{saveProfile.error.message}</div> : null}
 
           <div className="grid grid-cols-2 gap-3">
             <Button type="button" variant="secondary" onClick={() => navigate('/profile')}>
               Назад
             </Button>
-            <Button type="submit" disabled={uploadAvatar.isPending}>
+            <Button type="submit" disabled={uploadAvatar.isPending || saveProfile.isPending}>
               <Save size={16} className="mr-2" />
               Сохранить
             </Button>

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Message, Notification, User, UserRole } from '@/types'
+import type { User, UserRole } from '@/types'
 import { clearSessionTokens, hasSessionTokens } from '@/lib/session'
 
 const ROLE_STORAGE_KEY = 'caspx-role'
@@ -106,53 +106,5 @@ export const useMapStore = create<MapStore>((set) => ({
   toggleLayer: (layer) =>
     set((state) => ({
       layers: { ...state.layers, [layer]: !state.layers[layer] },
-    })),
-}))
-
-interface NotificationStore {
-  notifications: Notification[]
-  setNotifications: (notifications: Notification[]) => void
-  addNotification: (notification: Notification) => void
-  markAsRead: (id: string) => void
-  markAllAsRead: () => void
-}
-
-export const useNotificationStore = create<NotificationStore>((set) => ({
-  notifications: [],
-  setNotifications: (notifications) => set({ notifications }),
-  addNotification: (notification) =>
-    set((state) => ({ notifications: [notification, ...state.notifications] })),
-  markAsRead: (id) =>
-    set((state) => ({
-      notifications: state.notifications.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification,
-      ),
-    })),
-  markAllAsRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((notification) => ({
-        ...notification,
-        read: true,
-      })),
-    })),
-}))
-
-interface ChatStore {
-  currentChatId: string | null
-  messagesByChat: Record<string, Message[]>
-  setCurrentChat: (id: string | null) => void
-  appendMessage: (chatId: string, message: Message) => void
-}
-
-export const useChatStore = create<ChatStore>((set) => ({
-  currentChatId: null,
-  messagesByChat: {},
-  setCurrentChat: (id) => set({ currentChatId: id }),
-  appendMessage: (chatId, message) =>
-    set((state) => ({
-      messagesByChat: {
-        ...state.messagesByChat,
-        [chatId]: [...(state.messagesByChat[chatId] ?? []), message],
-      },
     })),
 }))

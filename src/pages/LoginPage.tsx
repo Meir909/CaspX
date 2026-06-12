@@ -16,10 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
 
   return (
-    <AuthShell
-      title="Вход в CaspX"
-      subtitle="Только реальная авторизация через backend."
-    >
+    <AuthShell title="Вход в CaspX" subtitle="Только реальная авторизация через backend.">
       <Card>
         <CardHeader>
           <CardTitle>Войти</CardTitle>
@@ -80,12 +77,6 @@ export default function LoginPage() {
             Нет аккаунта?{' '}
             <Link to="/register" className="text-primary transition-colors hover:text-white">
               Регистрация
-            </Link>
-          </div>
-
-          <div className="mt-3 text-center text-sm text-text-secondary">
-            <Link to="/forgot-password" className="text-primary transition-colors hover:text-white">
-              Забыли пароль?
             </Link>
           </div>
         </CardContent>

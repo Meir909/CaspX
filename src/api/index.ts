@@ -8,42 +8,9 @@ import {
   setSessionTokens,
 } from '@/lib/session'
 
-const PASSWORD_RESET_STORAGE_KEY = 'caspx-password-reset-requests'
-
 type SessionTokens = {
   accessToken: string
   refreshToken: string
-}
-
-type ResetPasswordPayload = {
-  token: string
-  password: string
-}
-
-type PasswordResetRequestResult = {
-  email: string
-  mailtoLink: string
-  resetLink: string
-  expiresAt: string
-}
-
-type PasswordResetCompleteResult = {
-  email: string
-  confirmationMailtoLink: string
-  user: User
-}
-
-type RequestOptions = {
-  auth?: boolean
-  retryOnAuth?: boolean
-}
-
-let currentUser: User = {
-  id: 'local-user',
-  name: 'CaspX User',
-  email: '',
-  phone: '+7',
-  role: 'user',
 }
 
 class ApiRequestError extends Error {
@@ -56,6 +23,14 @@ class ApiRequestError extends Error {
     this.status = status
     this.payload = payload
   }
+}
+
+let currentUser: User = {
+  id: 'local-user',
+  name: 'CaspX User',
+  email: '',
+  phone: '+7',
+  role: 'user',
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -110,6 +85,31 @@ function extractErrorMessage(payload: unknown, fallback: string) {
   return readString(payload, ['error', 'detail'], fallback) || fallback
 }
 
+function getEnvelope(payload: unknown, key: string) {
+  if (!isPlainObject(payload)) return undefined
+  const nested = payload[key]
+  return isPlainObject(nested) ? nested : payload
+}
+
+function extractTokens(payload: unknown): SessionTokens | null {
+  if (!isPlainObject(payload)) return null
+
+  const candidates = [payload, isPlainObject(payload.tokens) ? payload.tokens : null].filter(
+    (item): item is Record<string, unknown> => Boolean(item),
+  )
+
+  for (const candidate of candidates) {
+    const accessToken = readString(candidate, ['accessToken', 'access'])
+    const refreshToken = readString(candidate, ['refreshToken', 'refresh'])
+
+    if (accessToken && refreshToken) {
+      return { accessToken, refreshToken }
+    }
+  }
+
+  return null
+}
+
 function splitFullName(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean)
   return {
@@ -140,31 +140,6 @@ function toUserRole(role: string, carrierApproved: boolean): UserRole {
   return 'user'
 }
 
-function getEnvelope(payload: unknown, key: string) {
-  if (!isPlainObject(payload)) return undefined
-  const nested = payload[key]
-  return isPlainObject(nested) ? nested : payload
-}
-
-function extractTokens(payload: unknown): SessionTokens | null {
-  if (!isPlainObject(payload)) return null
-
-  const candidates = [payload, isPlainObject(payload.tokens) ? payload.tokens : null].filter(
-    (item): item is Record<string, unknown> => Boolean(item),
-  )
-
-  for (const candidate of candidates) {
-    const accessToken = readString(candidate, ['accessToken', 'access'])
-    const refreshToken = readString(candidate, ['refreshToken', 'refresh'])
-
-    if (accessToken && refreshToken) {
-      return { accessToken, refreshToken }
-    }
-  }
-
-  return null
-}
-
 function mapBackendUser(payload: unknown): User {
   const data = getEnvelope(payload, 'user') ?? {}
   const firstName = readString(data, ['firstName', 'first_name'])
@@ -186,10 +161,16 @@ function mapBackendUser(payload: unknown): User {
   }
 }
 
+function requireLiveApi() {
+  if (!isLiveApiEnabled()) {
+    throw new Error('Live API отключён. Для работы нужен backend.')
+  }
+}
+
 async function requestJson<T>(
   path: string,
   init: RequestInit,
-  options: RequestOptions = {},
+  options: { auth?: boolean; retryOnAuth?: boolean } = {},
 ): Promise<T> {
   const url = `${getApiBaseUrl()}${path}`
   const headers = new Headers(init.headers)
@@ -215,11 +196,6 @@ async function requestJson<T>(
   const raw = await response.text()
   const payload = parseJsonSafely(raw)
 
-  if (response.status === 401 && options.auth && options.retryOnAuth !== false && getRefreshToken()) {
-    await refreshTokens()
-    return requestJson<T>(path, init, { ...options, retryOnAuth: false })
-  }
-
   if (!response.ok) {
     throw new ApiRequestError(
       extractErrorMessage(payload, `Request failed with status ${response.status}`),
@@ -231,118 +207,16 @@ async function requestJson<T>(
   return payload as T
 }
 
-async function refreshTokens() {
-  const refreshToken = getRefreshToken()
-  if (!refreshToken) {
-    clearSessionTokens()
-    throw new Error('Сессия истекла. Выполните вход заново.')
-  }
-
+async function ensureProfile(): Promise<User> {
   const payload = await requestJson<unknown>(
-    '/auth/refresh',
-    {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    },
-    { retryOnAuth: false },
+    '/auth/me',
+    { method: 'GET' },
+    { auth: true },
   )
 
-  const tokens = extractTokens(payload)
-  if (!tokens) {
-    clearSessionTokens()
-    throw new Error('Backend не вернул новые токены.')
-  }
-
-  setSessionTokens(tokens)
-  return tokens
-}
-
-function createPasswordResetRequest(email: string): PasswordResetRequestResult {
-  const token = `reset-${crypto.randomUUID()}`
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
-  const resetLink = `${window.location.origin}/reset-password?token=${encodeURIComponent(token)}`
-  const subject = encodeURIComponent('CaspX: восстановление доступа')
-  const body = encodeURIComponent(
-    [
-      'Здравствуйте!',
-      '',
-      'Мы получили запрос на сброс пароля для вашего аккаунта CaspX.',
-      `Ссылка для установки нового пароля: ${resetLink}`,
-      `Ссылка действует до: ${new Date(expiresAt).toLocaleString('ru-RU')}`,
-      '',
-      'Если вы не запрашивали сброс пароля, просто проигнорируйте это письмо.',
-    ].join('\n'),
-  )
-
-  const stored = localStorage.getItem(PASSWORD_RESET_STORAGE_KEY)
-  const requests = stored ? (JSON.parse(stored) as Array<{ email: string; token: string; expiresAt: string }>) : []
-  const nextRequests = [{ email, token, expiresAt }, ...requests.filter((item) => item.email !== email)]
-  localStorage.setItem(PASSWORD_RESET_STORAGE_KEY, JSON.stringify(nextRequests))
-
-  return {
-    email,
-    mailtoLink: `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`,
-    resetLink,
-    expiresAt,
-  }
-}
-
-function createPasswordChangedConfirmation(email: string) {
-  const subject = encodeURIComponent('CaspX: пароль успешно изменён')
-  const body = encodeURIComponent(
-    [
-      'Здравствуйте!',
-      '',
-      'Ваш пароль в CaspX был успешно изменён.',
-      'Если это были не вы, пожалуйста, немедленно восстановите доступ и свяжитесь с поддержкой.',
-      '',
-      `Аккаунт: ${email}`,
-      `Время изменения: ${new Date().toLocaleString('ru-RU')}`,
-    ].join('\n'),
-  )
-
-  return `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`
-}
-
-function consumePasswordResetToken(token: string, password: string) {
-  const stored = localStorage.getItem(PASSWORD_RESET_STORAGE_KEY)
-  const requests = stored ? (JSON.parse(stored) as Array<{ email: string; token: string; expiresAt: string }>) : []
-  const request = requests.find((item) => item.token === token)
-
-  if (!request) {
-    throw new Error('Ссылка для сброса пароля не найдена или уже использована.')
-  }
-
-  if (new Date(request.expiresAt).getTime() < Date.now()) {
-    localStorage.setItem(
-      PASSWORD_RESET_STORAGE_KEY,
-      JSON.stringify(requests.filter((item) => item.token !== token)),
-    )
-    throw new Error('Срок действия ссылки истек. Запросите сброс пароля заново.')
-  }
-
-  localStorage.setItem(
-    PASSWORD_RESET_STORAGE_KEY,
-    JSON.stringify(requests.filter((item) => item.token !== token)),
-  )
-
-  return {
-    email: request.email,
-    password,
-  }
-}
-
-function mapTransportType(value: string) {
-  const normalized = value.toLowerCase()
-  if (normalized.includes('sea') || normalized.includes('мор')) return 'SEA'
-  if (normalized.includes('multi') || normalized.includes('мульт')) return 'MULTIMODAL'
-  return 'ROAD'
-}
-
-function requireLiveApi() {
-  if (!isLiveApiEnabled()) {
-    throw new Error('Live API отключён. Для работы нужен backend.')
-  }
+  const user = mapBackendUser(payload)
+  currentUser = user
+  return user
 }
 
 export const api = {
@@ -364,9 +238,7 @@ export const api = {
       }
 
       setSessionTokens(tokens)
-      const user = await api.auth.getProfile()
-      currentUser = user
-      return user
+      return ensureProfile()
     },
 
     register: async (data: Partial<User> & { password?: string }): Promise<User> => {
@@ -396,32 +268,6 @@ export const api = {
       return api.auth.login(data.email, data.password)
     },
 
-    forgotPassword: async (email: string): Promise<PasswordResetRequestResult> => createPasswordResetRequest(email),
-
-    resetPassword: async ({ token, password }: ResetPasswordPayload): Promise<PasswordResetCompleteResult> => {
-      const result = consumePasswordResetToken(token, password)
-      const user: User = {
-        ...currentUser,
-        id: currentUser.id || `local-user-${Date.now()}`,
-        name: currentUser.name || result.email.split('@')[0],
-        email: result.email,
-        phone: currentUser.phone || '+7',
-        role: currentUser.role || 'user',
-      }
-
-      currentUser = user
-      setSessionTokens({
-        accessToken: `local-reset-${Date.now()}`,
-        refreshToken: `local-reset-${Date.now() + 1}`,
-      })
-
-      return {
-        email: result.email,
-        confirmationMailtoLink: createPasswordChangedConfirmation(result.email),
-        user,
-      }
-    },
-
     logout: async (): Promise<void> => {
       requireLiveApi()
 
@@ -446,16 +292,32 @@ export const api = {
 
     getProfile: async (): Promise<User> => {
       requireLiveApi()
+      return ensureProfile()
+    },
+
+    updateProfile: async (data: {
+      name?: string
+      phone?: string
+      avatar?: string
+    }): Promise<User> => {
+      requireLiveApi()
 
       const payload = await requestJson<unknown>(
         '/auth/me',
-        { method: 'GET' },
+        {
+          method: 'PATCH',
+          body: JSON.stringify({
+            name: data.name?.trim() || undefined,
+            phone: data.phone?.trim() || undefined,
+            avatar: data.avatar?.trim() || undefined,
+          }),
+        },
         { auth: true },
       )
 
-      const user = mapBackendUser(payload)
-      currentUser = user
-      return user
+      const nextUser = mapBackendUser(payload)
+      currentUser = nextUser
+      return nextUser
     },
 
     becomeCarrier: async (data: {
@@ -477,7 +339,7 @@ export const api = {
           method: 'POST',
           body: JSON.stringify({
             experienceYears: Number.parseInt(data.experience || '0', 10),
-            transportType: mapTransportType(data.transportType || data.direction || 'road'),
+            transportType: data.transportType || data.direction || 'ROAD',
             description: [
               data.company ? `Компания: ${data.company}` : '',
               data.businessId ? `БИН: ${data.businessId}` : '',

@@ -10,6 +10,7 @@ import {
   Files,
   Headset,
   House,
+  MapPinned,
   Menu,
   Truck,
   X,
@@ -20,17 +21,19 @@ import { getHelpForPath } from '@/data/help'
 import { cn } from '@/lib/utils'
 
 const userNav = [
-  { path: '/', label: 'Главная', icon: House },
-  { path: '/create-order', label: 'Создать заказ', icon: FilePlus2 },
-  { path: '/orders', label: 'Мои заказы', icon: Files },
-  { path: '/support', label: 'Поддержка', icon: Headset },
-  { path: '/about', label: 'О приложении', icon: Compass },
+  { path: '/', label: 'Р“Р»Р°РІРЅР°СЏ', icon: House },
+  { path: '/map', label: 'РљР°СЂС‚Р°', icon: MapPinned },
+  { path: '/create-order', label: 'РЎРѕР·РґР°С‚СЊ Р·Р°РєР°Р·', icon: FilePlus2 },
+  { path: '/orders', label: 'РњРѕРё Р·Р°РєР°Р·С‹', icon: Files },
+  { path: '/support', label: 'РџРѕРґРґРµСЂР¶РєР°', icon: Headset },
+  { path: '/about', label: 'Рћ РїСЂРёР»РѕР¶РµРЅРёРё', icon: Compass },
 ]
 
 const carrierNav = [
-  { path: '/carrier', label: 'Кабинет перевозчика', icon: Boxes },
-  { path: '/carrier/orders', label: 'Доступные заказы', icon: ClipboardList },
-  { path: '/carrier/transport', label: 'Мой транспорт', icon: Truck },
+  { path: '/carrier', label: 'РљР°Р±РёРЅРµС‚ РїРµСЂРµРІРѕР·С‡РёРєР°', icon: Boxes },
+  { path: '/map', label: 'РљР°СЂС‚Р°', icon: MapPinned },
+  { path: '/carrier/orders', label: 'Р”РѕСЃС‚СѓРїРЅС‹Рµ Р·Р°РєР°Р·С‹', icon: ClipboardList },
+  { path: '/carrier/transport', label: 'РњРѕР№ С‚СЂР°РЅСЃРїРѕСЂС‚', icon: Truck },
 ]
 
 export default function MainLayout() {
@@ -65,7 +68,7 @@ export default function MainLayout() {
                 type="button"
                 onClick={() => setHelpOpen(true)}
                 className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/[0.04] text-text-secondary"
-                aria-label="Открыть справочник"
+                aria-label="РћС‚РєСЂС‹С‚СЊ СЃРїСЂР°РІРѕС‡РЅРёРє"
               >
                 <CircleHelp size={18} />
               </button>
