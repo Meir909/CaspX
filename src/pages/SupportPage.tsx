@@ -1,23 +1,42 @@
-import { AlertTriangle, CircleHelp, MessageSquare, PhoneCall } from 'lucide-react'
+import { AlertTriangle, CircleHelp, Mail, PhoneCall } from 'lucide-react'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
-import { supportItems } from '@/data/mock'
 
-const icons = {
-  help: CircleHelp,
-  chat: MessageSquare,
-  alert: AlertTriangle,
-  phone: PhoneCall,
-}
+const supportItems = [
+  {
+    id: 'faq',
+    title: 'Частые вопросы',
+    description: 'Короткие ответы по регистрации, заказам, маршрутам и загрузке фотографий.',
+    icon: CircleHelp,
+  },
+  {
+    id: 'mail',
+    title: 'Связаться с нами',
+    description: 'support@caspx.kz',
+    icon: Mail,
+  },
+  {
+    id: 'issue',
+    title: 'Сообщить о проблеме',
+    description: 'Если экран не работает или backend вернул ошибку, напишите в поддержку.',
+    icon: AlertTriangle,
+  },
+  {
+    id: 'phone',
+    title: 'Звонок в поддержку',
+    description: '+7 700 123 45 67',
+    icon: PhoneCall,
+  },
+]
 
 export default function SupportPage() {
   return (
     <div className="space-y-4">
-      <PageIntro title="Поддержка" subtitle="Быстрая связь с командой CaspX" />
+      <PageIntro title="Поддержка" subtitle="Быстрая связь с командой CaspX." />
 
       <SectionCard>
         <div className="space-y-2">
           {supportItems.map((item) => {
-            const Icon = icons[item.icon]
+            const Icon = item.icon
 
             return (
               <div key={item.id} className="flex items-center gap-4 rounded-2xl bg-white/[0.03] px-4 py-4">

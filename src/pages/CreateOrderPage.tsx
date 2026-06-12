@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input'
 import { SectionCard, PageIntro } from '@/components/app/primitives'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { cargoSuggestions } from '@/data/mock'
 import { findCity, getCitiesByCountry, locationCatalog } from '@/data/geo'
 import { useCreateOrder } from '@/hooks'
 import { readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
 
 const requirementOptions = ['Требуется погрузка', 'Температурный режим', 'Контроль пломбы', 'Срочная подача']
+const cargoSuggestions = ['Металл', 'Оборудование', 'Контейнеры', 'Зерно', 'Стройматериалы', 'Нефтехимия']
 
 const today = new Date().toISOString().slice(0, 10)
 const maxDate = '2030-12-31'

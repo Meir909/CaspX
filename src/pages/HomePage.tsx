@@ -2,12 +2,15 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Boxes, FilePlus2, Files, Truck } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
+import { ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard, TruckIllustration } from '@/components/app/primitives'
+import { useCheckpointLoadsCurrent } from '@/hooks'
 import { useAuthStore } from '@/store'
 
 export default function HomePage() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
+  const checkpointQuery = useCheckpointLoadsCurrent()
 
   const quickActions =
     user?.role === 'carrier' && user?.carrierStatus === 'approved'
@@ -80,6 +83,33 @@ export default function HomePage() {
           <p>В интерфейсе оставлены только рабочие сценарии, которые опираются на текущие backend-endpoint'ы.</p>
           <p>Формы заказов, live-профили, транспорт, карта маршрута и загрузка изображений уже работают через реальный API-слой.</p>
         </div>
+      </SectionCard>
+
+      <SectionCard title="Ситуация на КПП">
+        {checkpointQuery.isLoading ? (
+          <LoadingList count={2} />
+        ) : checkpointQuery.isError ? (
+          <ErrorState
+            title="Не удалось получить snapshot КПП"
+            description={checkpointQuery.error instanceof Error ? checkpointQuery.error.message : 'Повторите запрос позже.'}
+            onRetry={() => void checkpointQuery.refetch()}
+          />
+        ) : (
+          <div className="space-y-3">
+            <div className="text-sm text-text-secondary">
+              Обновлено: {new Date(checkpointQuery.data?.fetchedAt || Date.now()).toLocaleString('ru-RU')}
+            </div>
+            {(checkpointQuery.data?.checkpoints || []).slice(0, 3).map((item) => (
+              <div key={item.checkpointName} className="flex items-center justify-between rounded-2xl bg-white/[0.03] px-4 py-3 text-sm">
+                <div>
+                  <div className="font-medium">{item.checkpointName}</div>
+                  <div className="mt-1 text-text-secondary">{item.borderCountry || item.region || item.source}</div>
+                </div>
+                <div className="text-amber-300">{item.waitingAreaCount}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </SectionCard>
 
       <Button className="w-full" size="lg" onClick={() => navigate('/orders')}>

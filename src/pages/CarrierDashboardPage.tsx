@@ -2,8 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard, StatCard, TruckIllustration } from '@/components/app/primitives'
-import { formatMoney } from '@/data/mock'
 import { useAvailableOrders, useCarrierProfile, useCarrierVehicles, useOrders } from '@/hooks'
+import { formatMoney } from '@/lib/format'
 
 export default function CarrierDashboardPage() {
   const navigate = useNavigate()

@@ -2,8 +2,8 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, RouteTimeline, SectionCard } from '@/components/app/primitives'
-import { formatMoney } from '@/data/mock'
 import { useOrder } from '@/hooks'
+import { formatMoney } from '@/lib/format'
 
 export default function OrderDetailsPage() {
   const navigate = useNavigate()

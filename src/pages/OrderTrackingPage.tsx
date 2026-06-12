@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, RouteTimeline, SectionCard } from '@/components/app/primitives'
 import TwoGisTransitMap from '@/components/app/TwoGisTransitMap'
-import { useCalculatedRoute, useOrder, useTrackingTimeline } from '@/hooks'
+import { useCalculatedRoute, useLandPrediction, useMarinePrediction, useOrder, useTrackingTimeline } from '@/hooks'
 import type { TrackingEvent } from '@/types'
 
 const statusLabels: Record<TrackingEvent['status'], string> = {
@@ -27,6 +27,21 @@ export default function OrderTrackingPage() {
   const trackingItems = trackingQuery.data?.tracking ?? []
   const currentStatus = trackingQuery.data?.currentStatus
   const route = routeQuery.data
+  const landPredictionQuery = useLandPrediction(order?.id)
+  const marinePredictionQuery = useMarinePrediction(
+    order &&
+      typeof order.originLat === 'number' &&
+      typeof order.originLng === 'number' &&
+      typeof order.destinationLat === 'number' &&
+      typeof order.destinationLng === 'number'
+      ? {
+          originLat: order.originLat,
+          originLng: order.originLng,
+          destLat: order.destinationLat,
+          destLng: order.destinationLng,
+        }
+      : null,
+  )
 
   const mapMarkers = useMemo(() => {
     if (!order) return []
@@ -127,6 +142,45 @@ export default function OrderTrackingPage() {
             </div>
           </SectionCard>
 
+          <SectionCard title="Рекомендации backend">
+            <div className="space-y-3">
+              {landPredictionQuery.isLoading || marinePredictionQuery.isLoading ? (
+                <div className="animate-pulse space-y-3">
+                  <div className="h-20 rounded-2xl bg-white/5" />
+                  <div className="h-20 rounded-2xl bg-white/5" />
+                </div>
+              ) : null}
+
+              {landPredictionQuery.data ? (
+                <PredictionCard
+                  title="Сухопутный прогноз"
+                  recommendation={landPredictionQuery.data.recommendation}
+                  riskLevel={landPredictionQuery.data.riskLevel}
+                  bestDepartureTime={landPredictionQuery.data.bestDepartureTime}
+                  expectedDelayMinutes={landPredictionQuery.data.expectedDelayMinutes}
+                  explanation={landPredictionQuery.data.shortExplanation}
+                />
+              ) : null}
+
+              {marinePredictionQuery.data ? (
+                <PredictionCard
+                  title="Морской прогноз"
+                  recommendation={marinePredictionQuery.data.recommendation}
+                  riskLevel={marinePredictionQuery.data.riskLevel}
+                  bestDepartureTime={marinePredictionQuery.data.bestDepartureTime}
+                  expectedDelayMinutes={marinePredictionQuery.data.expectedDelayMinutes}
+                  explanation={marinePredictionQuery.data.shortExplanation}
+                />
+              ) : null}
+
+              {!landPredictionQuery.data && !marinePredictionQuery.data && !landPredictionQuery.isLoading && !marinePredictionQuery.isLoading ? (
+                <div className="rounded-2xl bg-white/[0.03] px-4 py-3 text-sm text-text-secondary">
+                  Пока нет доступных prediction-данных для этого маршрута.
+                </div>
+              ) : null}
+            </div>
+          </SectionCard>
+
           <SectionCard title="Статус доставки">
             {trackingQuery.isLoading ? (
               <div className="animate-pulse space-y-3">
@@ -173,4 +227,53 @@ function formatDuration(durationMinutes: number) {
   if (hours <= 0) return `${minutes} мин`
   if (minutes === 0) return `${hours} ч`
   return `${hours} ч ${minutes} мин`
+}
+
+function PredictionCard({
+  title,
+  recommendation,
+  riskLevel,
+  bestDepartureTime,
+  expectedDelayMinutes,
+  explanation,
+}: {
+  title: string
+  recommendation: string
+  riskLevel: string
+  bestDepartureTime: string
+  expectedDelayMinutes: number
+  explanation: string
+}) {
+  const riskTone =
+    riskLevel === 'high'
+      ? 'text-rose-300'
+      : riskLevel === 'low'
+        ? 'text-emerald-300'
+        : 'text-amber-300'
+
+  return (
+    <div className="rounded-2xl bg-white/[0.03] px-4 py-4">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="font-medium">{title}</div>
+          <div className="mt-1 text-sm text-text-secondary">{explanation}</div>
+        </div>
+        <div className={`text-sm font-medium uppercase ${riskTone}`}>{riskLevel}</div>
+      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <div className="text-text-secondary">Рекомендация</div>
+          <div className="mt-1 font-medium">{recommendation}</div>
+        </div>
+        <div>
+          <div className="text-text-secondary">Ожидаемая задержка</div>
+          <div className="mt-1 font-medium">{expectedDelayMinutes} мин</div>
+        </div>
+        <div className="col-span-2">
+          <div className="text-text-secondary">Лучшее время выезда</div>
+          <div className="mt-1 font-medium">{new Date(bestDepartureTime).toLocaleString('ru-RU')}</div>
+        </div>
+      </div>
+    </div>
+  )
 }

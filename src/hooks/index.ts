@@ -141,93 +141,42 @@ export const useCalculatedRoute = (orderId?: string) =>
     retry: false,
   })
 
-export const useCarriers = () =>
+export const useCheckpointLoadsCurrent = () =>
   useQuery({
-    queryKey: ['carriers'],
-    queryFn: api.orders.getCarriers,
+    queryKey: ['checkpoint-loads', 'current'],
+    queryFn: backendApi.checkpointLoads.getCurrent,
+    retry: false,
   })
 
-export const usePorts = () =>
+export const useLandPrediction = (orderId?: string) =>
   useQuery({
-    queryKey: ['ports'],
-    queryFn: api.map.getPorts,
+    queryKey: ['predictions', 'land', orderId],
+    queryFn: () => backendApi.predictions.predictLand(orderId || ''),
+    enabled: Boolean(orderId),
+    retry: false,
   })
 
-export const useCheckpoints = () =>
+export const useMarinePrediction = (
+  input?:
+    | {
+        originLat: number
+        originLng: number
+        destLat: number
+        destLng: number
+      }
+    | null,
+) =>
   useQuery({
-    queryKey: ['checkpoints'],
-    queryFn: api.map.getCheckpoints,
-  })
-
-export const useVessels = () =>
-  useQuery({
-    queryKey: ['vessels'],
-    queryFn: api.map.getVessels,
-  })
-
-export const useTrucks = () =>
-  useQuery({
-    queryKey: ['trucks'],
-    queryFn: api.map.getTrucks,
-  })
-
-export const useAIAnalytics = () =>
-  useQuery({
-    queryKey: ['aiAnalytics'],
-    queryFn: api.ai.getAnalytics,
-  })
-
-export const useGenerateRoute = () =>
-  useMutation({
-    mutationFn: ({ from, to }: { from: string; to: string }) => api.ai.generateRoute(from, to),
-  })
-
-export const useAIChat = () =>
-  useMutation({
-    mutationFn: api.ai.chat,
-  })
-
-export const useChats = () =>
-  useQuery({
-    queryKey: ['chats'],
-    queryFn: api.chat.getChats,
-  })
-
-export const useNotifications = () =>
-  useQuery({
-    queryKey: ['notifications'],
-    queryFn: api.notifications.getNotifications,
-  })
-
-export const useMessages = (chatId: string) =>
-  useQuery({
-    queryKey: ['messages', chatId],
-    queryFn: () => api.chat.getMessages(chatId),
-    enabled: Boolean(chatId),
-  })
-
-export const useSendMessage = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ chatId, text }: { chatId: string; text: string }) => api.chat.sendMessage(chatId, text),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['messages', variables.chatId] })
-      queryClient.invalidateQueries({ queryKey: ['chats'] })
-    },
-  })
-}
-
-export const useStats = () =>
-  useQuery({
-    queryKey: ['stats'],
-    queryFn: api.stats.getStats,
-  })
-
-export const useCharts = () =>
-  useQuery({
-    queryKey: ['charts'],
-    queryFn: api.stats.getCharts,
+    queryKey: ['predictions', 'marine', input],
+    queryFn: () =>
+      backendApi.predictions.predictMarine({
+        originLat: input?.originLat || 0,
+        originLng: input?.originLng || 0,
+        destLat: input?.destLat || 0,
+        destLng: input?.destLng || 0,
+      }),
+    enabled: Boolean(input),
+    retry: false,
   })
 
 export const useLogin = () =>

@@ -5,8 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
-import { formatMoney } from '@/data/mock'
 import { useOrders } from '@/hooks'
+import { formatMoney } from '@/lib/format'
 
 type OrderTab = 'all' | 'in_progress' | 'delivered' | 'cancelled'
 

@@ -140,6 +140,22 @@ export interface Checkpoint {
   load: number
 }
 
+export interface CheckpointLoadItem {
+  checkpointName: string
+  borderCountry?: string
+  region?: string
+  waitingAreaCount: number
+  activeTruckNumbers: string[]
+  entryTimes: string[]
+  source: string
+}
+
+export interface CheckpointLoadCurrentSnapshot {
+  syncBatchId: string
+  fetchedAt: string
+  checkpoints: CheckpointLoadItem[]
+}
+
 export interface Vessel {
   id: string
   name: string
@@ -198,4 +214,13 @@ export interface CalculatedRoute {
     type: string
     coordinates: [number, number][]
   }
+}
+
+export interface LogisticsPrediction {
+  orderId?: string
+  recommendation: string
+  riskLevel: string
+  bestDepartureTime: string
+  expectedDelayMinutes: number
+  shortExplanation: string
 }

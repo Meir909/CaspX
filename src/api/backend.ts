@@ -1,4 +1,14 @@
-import type { CalculatedRoute, CarrierProfile, CarrierVehicle, Order, TrackingEvent, TrackingTimeline } from '@/types'
+import type {
+  CalculatedRoute,
+  CarrierProfile,
+  CarrierVehicle,
+  CheckpointLoadCurrentSnapshot,
+  CheckpointLoadItem,
+  LogisticsPrediction,
+  Order,
+  TrackingEvent,
+  TrackingTimeline,
+} from '@/types'
 import {
   clearSessionTokens,
   getAccessToken,
@@ -515,6 +525,43 @@ function mapCalculatedRoute(payload: unknown): CalculatedRoute {
   }
 }
 
+function mapCheckpointLoadItem(payload: unknown): CheckpointLoadItem {
+  const data = isPlainObject(payload) ? payload : {}
+
+  return {
+    checkpointName: readString(data, ['checkpointName'], 'Checkpoint'),
+    borderCountry: readNullableString(data, ['borderCountry']),
+    region: readNullableString(data, ['region']),
+    waitingAreaCount: readNumber(data, ['waitingAreaCount'], 0),
+    activeTruckNumbers: readStringArray(data, ['activeTruckNumbers']),
+    entryTimes: readStringArray(data, ['entryTimes']),
+    source: readString(data, ['source'], 'backend'),
+  }
+}
+
+function mapCheckpointLoadsSnapshot(payload: unknown): CheckpointLoadCurrentSnapshot {
+  const data = isPlainObject(payload) ? payload : {}
+
+  return {
+    syncBatchId: readString(data, ['syncBatchId'], ''),
+    fetchedAt: readString(data, ['fetchedAt'], new Date().toISOString()),
+    checkpoints: asArray(data.checkpoints).map((item) => mapCheckpointLoadItem(item)),
+  }
+}
+
+function mapPrediction(payload: unknown): LogisticsPrediction {
+  const data = isPlainObject(payload) ? payload : {}
+
+  return {
+    orderId: readNullableString(data, ['orderId']),
+    recommendation: readString(data, ['recommendation'], 'wait'),
+    riskLevel: readString(data, ['riskLevel'], 'medium'),
+    bestDepartureTime: readString(data, ['bestDepartureTime'], new Date().toISOString()),
+    expectedDelayMinutes: readNumber(data, ['expectedDelayMinutes'], 0),
+    shortExplanation: readString(data, ['shortExplanation'], 'Prediction is not available.'),
+  }
+}
+
 function buildOrderPayload(data: CreateOrderInput | UpdateOrderInput) {
   const payload: Record<string, unknown> = {}
   const hasRoute = typeof data.from === 'string' || typeof data.to === 'string'
@@ -846,6 +893,48 @@ export const backendApi = {
       )
 
       return mapCalculatedRoute(payload)
+    },
+  },
+
+  checkpointLoads: {
+    getCurrent: async () => {
+      const payload = await requestJson<unknown>(
+        '/checkpoint-loads/current',
+        { method: 'GET' },
+      )
+
+      return mapCheckpointLoadsSnapshot(payload)
+    },
+  },
+
+  predictions: {
+    predictLand: async (orderId: string) => {
+      const payload = await requestJson<unknown>(
+        '/predictions/land',
+        {
+          method: 'POST',
+          body: JSON.stringify({ orderId }),
+        },
+      )
+
+      return mapPrediction(payload)
+    },
+
+    predictMarine: async (input: {
+      originLat: number
+      originLng: number
+      destLat: number
+      destLng: number
+    }) => {
+      const payload = await requestJson<unknown>(
+        '/predictions/marine',
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+        },
+      )
+
+      return mapPrediction(payload)
     },
   },
 
