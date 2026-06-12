@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, RouteTimeline, SectionCard } from '@/components/app/primitives'
+import TwoGisTransitMap from '@/components/app/TwoGisTransitMap'
 import { useCalculatedRoute, useOrder, useTrackingTimeline } from '@/hooks'
-import type { CalculatedRoute, TrackingEvent } from '@/types'
+import type { TrackingEvent } from '@/types'
 
 const statusLabels: Record<TrackingEvent['status'], string> = {
   created: 'Создан',
@@ -27,6 +28,41 @@ export default function OrderTrackingPage() {
   const currentStatus = trackingQuery.data?.currentStatus
   const route = routeQuery.data
 
+  const mapMarkers = useMemo(() => {
+    if (!order) return []
+
+    const points = []
+    if (typeof order.originLng === 'number' && typeof order.originLat === 'number') {
+      points.push({
+        id: 'origin',
+        label: order.from,
+        coordinates: [order.originLng, order.originLat] as [number, number],
+      })
+    }
+
+    if (typeof order.destinationLng === 'number' && typeof order.destinationLat === 'number') {
+      points.push({
+        id: 'destination',
+        label: order.to,
+        coordinates: [order.destinationLng, order.destinationLat] as [number, number],
+      })
+    }
+
+    return points
+  }, [order])
+
+  const mapRoutes = useMemo(() => {
+    if (!route?.geometry.coordinates.length) return []
+
+    return [
+      {
+        id: route.routeId || 'order-route',
+        color: '#2563eb',
+        coordinates: route.geometry.coordinates,
+      },
+    ]
+  }, [route])
+
   return (
     <div className="space-y-4">
       <PageIntro title="Отслеживание" subtitle={order ? `Заказ #${order.number}` : 'Маршрут доставки'} />
@@ -42,11 +78,28 @@ export default function OrderTrackingPage() {
           <SectionCard title={`${order.from} → ${order.to}`} action={<span className="text-xs text-emerald-300">Live route</span>}>
             {routeQuery.isLoading ? (
               <div className="animate-pulse space-y-3">
-                <div className="h-52 rounded-[22px] bg-white/5" />
+                <div className="h-[320px] rounded-[22px] bg-white/5" />
                 <div className="h-4 w-2/3 rounded-full bg-white/10" />
               </div>
             ) : route ? (
-              <RouteGeometryCard route={route} />
+              <div className="space-y-4">
+                <TwoGisTransitMap
+                  apiKey={import.meta.env.VITE_2GIS_MAP_KEY}
+                  markers={mapMarkers}
+                  routes={mapRoutes}
+                  activeRouteId={mapRoutes[0]?.id}
+                />
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-2xl bg-white/[0.03] px-4 py-3">
+                    <div className="text-text-secondary">Дистанция</div>
+                    <div className="mt-1 font-medium">{route.distanceKm.toFixed(1)} км</div>
+                  </div>
+                  <div className="rounded-2xl bg-white/[0.03] px-4 py-3">
+                    <div className="text-text-secondary">Время в пути</div>
+                    <div className="mt-1 font-medium">{formatDuration(route.durationMinutes)}</div>
+                  </div>
+                </div>
+              </div>
             ) : (
               <div className="space-y-3">
                 <RouteTimeline items={order.routeStops || []} />
@@ -109,55 +162,6 @@ export default function OrderTrackingPage() {
           </Button>
         </>
       )}
-    </div>
-  )
-}
-
-function RouteGeometryCard({ route }: { route: CalculatedRoute }) {
-  const points = useMemo(() => {
-    const coordinates = route.geometry.coordinates
-    if (!coordinates.length) return []
-
-    const lngValues = coordinates.map(([lng]) => lng)
-    const latValues = coordinates.map(([, lat]) => lat)
-    const minLng = Math.min(...lngValues)
-    const maxLng = Math.max(...lngValues)
-    const minLat = Math.min(...latValues)
-    const maxLat = Math.max(...latValues)
-    const width = Math.max(maxLng - minLng, 0.001)
-    const height = Math.max(maxLat - minLat, 0.001)
-
-    return coordinates.map(([lng, lat]) => {
-      const x = 24 + ((lng - minLng) / width) * 272
-      const y = 24 + (1 - (lat - minLat) / height) * 152
-      return [x, y] as [number, number]
-    })
-  }, [route.geometry.coordinates])
-
-  const linePath = points.map(([x, y], index) => `${index === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ')
-  const start = points[0]
-  const end = points[points.length - 1]
-
-  return (
-    <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-[22px] border border-white/5 bg-[radial-gradient(circle_at_top,rgba(37,99,235,0.18),transparent_35%),linear-gradient(180deg,#071322_0%,#091728_100%)]">
-        <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(148,163,184,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.15)_1px,transparent_1px)] [background-size:32px_32px]" />
-        <svg viewBox="0 0 320 200" className="relative h-52 w-full">
-          {linePath ? <path d={linePath} fill="none" stroke="rgba(59,130,246,0.95)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" /> : null}
-          {start ? <circle cx={start[0]} cy={start[1]} r="7" fill="#22c55e" /> : null}
-          {end ? <circle cx={end[0]} cy={end[1]} r="7" fill="#a855f7" /> : null}
-        </svg>
-      </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-2xl bg-white/[0.03] px-4 py-3">
-          <div className="text-text-secondary">Дистанция</div>
-          <div className="mt-1 font-medium">{route.distanceKm.toFixed(1)} км</div>
-        </div>
-        <div className="rounded-2xl bg-white/[0.03] px-4 py-3">
-          <div className="text-text-secondary">Время в пути</div>
-          <div className="mt-1 font-medium">{formatDuration(route.durationMinutes)}</div>
-        </div>
-      </div>
     </div>
   )
 }

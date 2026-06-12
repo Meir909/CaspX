@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store'
 const profileSections = [
   { id: 'history', label: 'История заказов', description: 'Все ваши реальные заказы' },
   { id: 'support', label: 'Поддержка', description: 'Связь с командой проекта' },
-  { id: 'about', label: 'О приложении', description: 'Текущий статус и информация' },
+  { id: 'about', label: 'О приложении', description: 'Статус, политика и справочная информация' },
 ] as const
 
 export default function ProfilePage() {
@@ -26,21 +26,22 @@ export default function ProfilePage() {
             <div className="text-lg font-medium">{user?.name}</div>
             <div className="mt-1 text-sm text-text-secondary">{user?.email}</div>
             <div className="mt-1 text-sm text-text-secondary">{user?.phone}</div>
-            <div className="mt-2 inline-flex rounded-full bg-white/[0.04] px-2.5 py-1 text-sm text-text-secondary">
-              {user?.role === 'carrier' ? 'Перевозчик' : 'Пользователь'}
-            </div>
           </div>
         </div>
       </SectionCard>
 
+      <Button className="w-full" onClick={() => navigate('/profile/edit')}>
+        Редактировать профиль
+      </Button>
+
       {user?.role === 'carrier' && user.carrierStatus === 'approved' ? (
-        <Button className="w-full" onClick={() => navigate('/carrier/profile/edit')}>
+        <Button className="w-full" variant="secondary" onClick={() => navigate('/carrier/profile/edit')}>
           Редактировать профиль перевозчика
         </Button>
       ) : null}
 
       {user?.carrierStatus !== 'approved' ? (
-        <Button className="w-full" onClick={() => navigate('/become-carrier')}>
+        <Button className="w-full" variant="secondary" onClick={() => navigate('/become-carrier')}>
           Подать заявку перевозчика
         </Button>
       ) : null}

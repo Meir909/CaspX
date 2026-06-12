@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input'
 import { EmptyState, ErrorState, LoadingList } from '@/components/ui/async-state'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
 import { useCarrierVehicles, useUpdateVehicle } from '@/hooks'
-import { cropAndResizeImage } from '@/lib/utils'
+import { createImageCollageDataUrl, readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
+import { VehiclePlateInput } from '@/components/ui/vehicle-plate-input'
 
 export default function CarrierVehicleEditPage() {
   const navigate = useNavigate()
@@ -15,6 +16,7 @@ export default function CarrierVehicleEditPage() {
   const updateVehicle = useUpdateVehicle()
   const vehicle = useMemo(() => (vehiclesQuery.data ?? []).find((item) => item.id === id), [vehiclesQuery.data, id])
   const [formError, setFormError] = useState('')
+  const [vehiclePreviews, setVehiclePreviews] = useState<string[]>([])
   const [formData, setFormData] = useState({
     type: '',
     brand: '',
@@ -38,6 +40,7 @@ export default function CarrierVehicleEditPage() {
       cargoVolume: String(vehicle.cargoVolume),
       vehicleImageUrl: vehicle.vehicleImageUrl || '',
     })
+    setVehiclePreviews(vehicle.vehicleImageUrl ? [vehicle.vehicleImageUrl] : [])
   }, [vehicle])
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -49,8 +52,8 @@ export default function CarrierVehicleEditPage() {
       return
     }
 
-    if (!Number.isFinite(year) || year < 1950 || year > 2100) {
-      setFormError('Год транспорта должен быть в диапазоне 1950-2100.')
+    if (!Number.isFinite(year) || String(year).length !== 4 || year < 1950 || year > 2030) {
+      setFormError('Год транспорта должен быть четырехзначным и в диапазоне 1950-2030.')
       return
     }
 
@@ -94,7 +97,7 @@ export default function CarrierVehicleEditPage() {
               </label>
               <label className="space-y-2">
                 <span className="text-sm text-text-secondary">Год</span>
-                <Input type="number" min="1950" max="2100" value={formData.year} onChange={(event) => setFormData((prev) => ({ ...prev, year: event.target.value }))} />
+                <Input type="number" min="1950" max="2030" value={formData.year} onChange={(event) => setFormData((prev) => ({ ...prev, year: event.target.value }))} />
               </label>
               <label className="space-y-2">
                 <span className="text-sm text-text-secondary">Марка</span>
@@ -104,15 +107,15 @@ export default function CarrierVehicleEditPage() {
                 <span className="text-sm text-text-secondary">Модель</span>
                 <Input value={formData.model} onChange={(event) => setFormData((prev) => ({ ...prev, model: event.target.value }))} />
               </label>
-              <label className="space-y-2">
+              <label className="col-span-2 space-y-2">
                 <span className="text-sm text-text-secondary">Госномер</span>
-                <Input value={formData.plateNumber} onChange={(event) => setFormData((prev) => ({ ...prev, plateNumber: event.target.value }))} />
+                <VehiclePlateInput value={formData.plateNumber} onChange={(plateNumber) => setFormData((prev) => ({ ...prev, plateNumber }))} />
               </label>
               <label className="space-y-2">
                 <span className="text-sm text-text-secondary">Грузоподъемность, т</span>
                 <Input type="number" min="0" value={formData.capacityTons} onChange={(event) => setFormData((prev) => ({ ...prev, capacityTons: event.target.value }))} />
               </label>
-              <label className="col-span-2 space-y-2">
+              <label className="space-y-2">
                 <span className="text-sm text-text-secondary">Объем, м3</span>
                 <Input type="number" min="0" value={formData.cargoVolume} onChange={(event) => setFormData((prev) => ({ ...prev, cargoVolume: event.target.value }))} />
               </label>
@@ -121,23 +124,52 @@ export default function CarrierVehicleEditPage() {
             <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-5 text-center">
               <Camera size={20} className="mb-2 text-primary" />
               <span className="text-sm text-white">Обновить фото транспорта</span>
-              <span className="mt-1 text-xs text-text-secondary">Изображение будет отправлено как `vehicleImageUrl`</span>
+              <span className="mt-1 text-xs text-text-secondary">Можно выбрать от 1 до 3 фото.</span>
               <input
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={async (event) => {
-                  const file = event.target.files?.[0]
-                  if (!file) return
-                  const preview = await cropAndResizeImage(file, { width: 1280, height: 960, quality: 0.9 })
-                  setFormData((prev) => ({ ...prev, vehicleImageUrl: preview }))
+                  const files = Array.from(event.target.files ?? [])
+
+                  if (files.length < 1 || files.length > 3) {
+                    setFormError('Для транспорта можно прикрепить от 1 до 3 фото.')
+                    return
+                  }
+
+                  const resized = await Promise.all(
+                    files.map((file, index) =>
+                      resizeImageToFile(file, {
+                        width: 1280,
+                        height: 960,
+                        quality: 0.78,
+                        fileName: `vehicle-${index + 1}.jpg`,
+                      }),
+                    ),
+                  )
+
+                  const previews = await Promise.all(resized.map((file) => readFileAsDataUrl(file)))
+                  const collage = await createImageCollageDataUrl(resized, {
+                    width: 1280,
+                    height: 960,
+                    quality: 0.76,
+                  })
+
+                  setFormError('')
+                  setVehiclePreviews(previews)
+                  setFormData((prev) => ({ ...prev, vehicleImageUrl: collage }))
                 }}
               />
             </label>
 
-            {formData.vehicleImageUrl ? (
-              <div className="overflow-hidden rounded-[20px] border border-white/5 bg-white/[0.03]">
-                <img src={formData.vehicleImageUrl} alt={formData.plateNumber} className="h-40 w-full object-cover" />
+            {vehiclePreviews.length ? (
+              <div className="grid grid-cols-3 gap-3">
+                {vehiclePreviews.map((image, index) => (
+                  <div key={`${index}-${image.slice(0, 20)}`} className="overflow-hidden rounded-[20px] border border-white/5 bg-white/[0.03]">
+                    <img src={image} alt={`vehicle-edit-${index + 1}`} className="h-24 w-full object-cover" />
+                  </div>
+                ))}
               </div>
             ) : null}
 

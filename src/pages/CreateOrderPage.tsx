@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input'
 import { SectionCard, PageIntro } from '@/components/app/primitives'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { cargoSuggestions, locationCatalog } from '@/data/mock'
+import { cargoSuggestions } from '@/data/mock'
+import { findCity, getCitiesByCountry, locationCatalog } from '@/data/geo'
 import { useCreateOrder } from '@/hooks'
-import { readFilesAsDataUrls } from '@/lib/utils'
+import { readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
 
 const requirementOptions = ['Требуется погрузка', 'Температурный режим', 'Контроль пломбы', 'Срочная подача']
 
@@ -20,6 +21,8 @@ export default function CreateOrderPage() {
   const navigate = useNavigate()
   const { mutate, isPending, error: requestError } = useCreateOrder()
   const [error, setError] = useState('')
+  const [cargoFiles, setCargoFiles] = useState<File[]>([])
+  const [cargoPreviews, setCargoPreviews] = useState<string[]>([])
   const [formData, setFormData] = useState({
     fromCountry: 'Казахстан',
     from: 'Актау',
@@ -31,17 +34,10 @@ export default function CreateOrderPage() {
     date: today,
     comment: '',
     requirements: ['Требуется погрузка'] as string[],
-    cargoImages: [] as string[],
   })
 
-  const fromCities = useMemo(
-    () => locationCatalog.find((item) => item.country === formData.fromCountry)?.cities ?? [],
-    [formData.fromCountry],
-  )
-  const toCities = useMemo(
-    () => locationCatalog.find((item) => item.country === formData.toCountry)?.cities ?? [],
-    [formData.toCountry],
-  )
+  const fromCities = useMemo(() => getCitiesByCountry(formData.fromCountry), [formData.fromCountry])
+  const toCities = useMemo(() => getCitiesByCountry(formData.toCountry), [formData.toCountry])
 
   const toggleRequirement = (value: string) => {
     setFormData((prev) => ({
@@ -71,15 +67,27 @@ export default function CreateOrderPage() {
       return
     }
 
-    const previews = await readFilesAsDataUrls(selectedFiles, { width: 1280, height: 960, quality: 0.88 })
+    const resizedFiles = await Promise.all(
+      selectedFiles.map((file, index) =>
+        resizeImageToFile(file, {
+          width: 1600,
+          height: 1200,
+          quality: 0.82,
+          fileName: `cargo-${index + 1}.jpg`,
+        }),
+      ),
+    )
+
+    const previews = await Promise.all(resizedFiles.map((file) => readFileAsDataUrl(file)))
+    setCargoFiles(resizedFiles)
+    setCargoPreviews(previews)
     setError('')
-    setFormData((prev) => ({ ...prev, cargoImages: previews }))
   }
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
 
-    if (formData.cargoImages.length < 1 || formData.cargoImages.length > 5) {
+    if (cargoFiles.length < 1 || cargoFiles.length > 5) {
       setError('Нужно прикрепить минимум 1 и максимум 5 фото товара.')
       return
     }
@@ -89,11 +97,24 @@ export default function CreateOrderPage() {
       return
     }
 
+    const origin = findCity(formData.fromCountry, formData.from)
+    const destination = findCity(formData.toCountry, formData.to)
+
+    if (!origin || !destination) {
+      setError('Выберите страну и город отправки и доставки из справочника.')
+      return
+    }
+
     mutate(
       {
         ...formData,
         weight: Number(formData.weight),
         volume: Number(formData.volume),
+        originLat: origin.lat,
+        originLng: origin.lng,
+        destinationLat: destination.lat,
+        destinationLng: destination.lng,
+        cargoImageFiles: cargoFiles,
       },
       {
         onSuccess: (order) => navigate(`/orders/${order.id}`),
@@ -108,66 +129,65 @@ export default function CreateOrderPage() {
       onSubmit={handleSubmit}
       className="space-y-4"
     >
-      <PageIntro title="Создание заказа" subtitle="Форма отправляет реальный заказ в backend и сохраняет его в вашем списке" />
+      <PageIntro title="Создание заказа" subtitle="Форма отправляет заказ в backend, затем загружает фото товара отдельными multipart-запросами." />
 
       <SectionCard title="Маршрут">
-        <div className="space-y-4">
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-            <div className="space-y-3">
-              <Select
-                value={formData.fromCountry}
-                onChange={(event) => {
-                  const nextCountry = event.target.value
-                  const nextCity = locationCatalog.find((item) => item.country === nextCountry)?.cities[0] || ''
-                  setFormData((prev) => ({ ...prev, fromCountry: nextCountry, from: nextCity }))
-                }}
-              >
-                {locationCatalog.map((item) => (
-                  <option key={item.country} value={item.country}>
-                    {item.country}
-                  </option>
-                ))}
-              </Select>
-              <Select value={formData.from} onChange={(event) => setFormData((prev) => ({ ...prev, from: event.target.value }))}>
-                {fromCities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <button
-              type="button"
-              onClick={swapRoute}
-              className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-text-secondary transition-colors hover:bg-white/[0.08] hover:text-white"
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+          <div className="space-y-3">
+            <Select
+              value={formData.fromCountry}
+              onChange={(event) => {
+                const nextCountry = event.target.value
+                const nextCity = getCitiesByCountry(nextCountry)[0]?.name || ''
+                setFormData((prev) => ({ ...prev, fromCountry: nextCountry, from: nextCity }))
+              }}
             >
-              <ArrowRightLeft size={18} />
-            </button>
+              {locationCatalog.map((item) => (
+                <option key={item.country} value={item.country}>
+                  {item.country}
+                </option>
+              ))}
+            </Select>
+            <Select value={formData.from} onChange={(event) => setFormData((prev) => ({ ...prev, from: event.target.value }))}>
+              {fromCities.map((city) => (
+                <option key={city.name} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </Select>
+          </div>
 
-            <div className="space-y-3">
-              <Select
-                value={formData.toCountry}
-                onChange={(event) => {
-                  const nextCountry = event.target.value
-                  const nextCity = locationCatalog.find((item) => item.country === nextCountry)?.cities[0] || ''
-                  setFormData((prev) => ({ ...prev, toCountry: nextCountry, to: nextCity }))
-                }}
-              >
-                {locationCatalog.map((item) => (
-                  <option key={item.country} value={item.country}>
-                    {item.country}
-                  </option>
-                ))}
-              </Select>
-              <Select value={formData.to} onChange={(event) => setFormData((prev) => ({ ...prev, to: event.target.value }))}>
-                {toCities.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </Select>
-            </div>
+          <button
+            type="button"
+            onClick={swapRoute}
+            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[0.04] text-text-secondary transition-colors hover:bg-white/[0.08] hover:text-white"
+            aria-label="Поменять страны и города местами"
+          >
+            <ArrowRightLeft size={18} />
+          </button>
+
+          <div className="space-y-3">
+            <Select
+              value={formData.toCountry}
+              onChange={(event) => {
+                const nextCountry = event.target.value
+                const nextCity = getCitiesByCountry(nextCountry)[0]?.name || ''
+                setFormData((prev) => ({ ...prev, toCountry: nextCountry, to: nextCity }))
+              }}
+            >
+              {locationCatalog.map((item) => (
+                <option key={item.country} value={item.country}>
+                  {item.country}
+                </option>
+              ))}
+            </Select>
+            <Select value={formData.to} onChange={(event) => setFormData((prev) => ({ ...prev, to: event.target.value }))}>
+              {toCities.map((city) => (
+                <option key={city.name} value={city.name}>
+                  {city.name}
+                </option>
+              ))}
+            </Select>
           </div>
         </div>
       </SectionCard>
@@ -235,9 +255,9 @@ export default function CreateOrderPage() {
           <input type="file" accept="image/*" multiple className="hidden" onChange={(event) => void handleCargoImages(event.target.files)} />
         </label>
 
-        {formData.cargoImages.length ? (
+        {cargoPreviews.length ? (
           <div className="mt-4 grid grid-cols-3 gap-3">
-            {formData.cargoImages.map((image, index) => (
+            {cargoPreviews.map((image, index) => (
               <div key={`${index}-${image.slice(0, 20)}`} className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
                 <img src={image} alt={`cargo-${index + 1}`} className="h-24 w-full object-cover" />
               </div>

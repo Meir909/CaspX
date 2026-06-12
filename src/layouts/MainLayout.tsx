@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   Boxes,
+  CircleHelp,
   ClipboardList,
   Compass,
   FilePlus2,
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react'
 import { AppLogo, UserAvatar } from '@/components/app/primitives'
 import { useAuthStore, useUIStore } from '@/store'
+import { getHelpForPath } from '@/data/help'
 import { cn } from '@/lib/utils'
 
 const userNav = [
@@ -35,16 +38,20 @@ export default function MainLayout() {
   const location = useLocation()
   const { sidebarOpen, setSidebarOpen } = useUIStore()
   const { user } = useAuthStore()
+  const [helpOpen, setHelpOpen] = useState(false)
 
-  const navItems = user?.role === 'carrier' && user?.carrierStatus === 'approved'
-    ? [...userNav, ...carrierNav]
-    : userNav
+  const navItems =
+    user?.role === 'carrier' && user?.carrierStatus === 'approved'
+      ? [...userNav, ...carrierNav]
+      : userNav
+
+  const help = getHelpForPath(location.pathname)
 
   return (
     <div className="min-h-screen px-3 py-4 sm:px-6">
       <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[430px] flex-col overflow-hidden rounded-[32px] border border-white/10 bg-[#040b16]/90 shadow-[0_30px_120px_rgba(2,8,23,0.55)] backdrop-blur-xl">
         <header className="sticky top-0 z-30 border-b border-white/5 bg-[#040b16]/90 px-4 pb-3 pt-4 backdrop-blur">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <button
               type="button"
               onClick={() => setSidebarOpen(true)}
@@ -53,9 +60,19 @@ export default function MainLayout() {
               <Menu size={20} />
             </button>
             <AppLogo />
-            <button type="button" onClick={() => navigate('/profile')}>
-              <UserAvatar name={user?.name} avatar={user?.avatar} size="sm" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setHelpOpen(true)}
+                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/[0.04] text-text-secondary"
+                aria-label="Открыть справочник"
+              >
+                <CircleHelp size={18} />
+              </button>
+              <button type="button" onClick={() => navigate('/profile')}>
+                <UserAvatar name={user?.name} avatar={user?.avatar} size="sm" />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -127,6 +144,48 @@ export default function MainLayout() {
                   )
                 })}
               </div>
+            </div>
+          </motion.aside>
+        ) : null}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {helpOpen ? (
+          <motion.aside
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-black/60 px-4 py-6"
+          >
+            <div className="mx-auto flex h-full max-w-[430px] flex-col justify-end">
+              <motion.div
+                initial={{ y: 24, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 24, opacity: 0 }}
+                className="rounded-[28px] border border-white/10 bg-[#081120] p-5 shadow-[0_24px_80px_rgba(2,8,23,0.5)]"
+              >
+                <div className="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-lg font-medium">{help.title}</div>
+                    <div className="mt-1 text-sm text-text-secondary">Краткая подсказка по текущему экрану.</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHelpOpen(false)}
+                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] text-text-secondary"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {help.items.map((item) => (
+                    <div key={item} className="rounded-2xl bg-white/[0.03] px-4 py-3 text-sm leading-6 text-text-secondary">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             </div>
           </motion.aside>
         ) : null}

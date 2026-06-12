@@ -1,13 +1,13 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ArrowRight, BriefcaseBusiness, LockKeyhole, Mail, Phone, UserRound } from 'lucide-react'
+import { ArrowRight, LockKeyhole, Mail, UserRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select } from '@/components/ui/select'
 import { AuthShell } from '@/components/app/auth-shell'
 import { useRegister } from '@/hooks'
 import { useAuthStore } from '@/store'
+import { PhoneInput, normalizePhoneValue } from '@/components/ui/phone-input'
 import type { UserRole } from '@/types'
 
 type RegisterRole = Extract<UserRole, 'user' | 'carrier'>
@@ -36,7 +36,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
+    phone: '+7',
     password: '',
     role: 'user' as RegisterRole,
   })
@@ -44,7 +44,7 @@ export default function RegisterPage() {
   return (
     <AuthShell
       title="Регистрация"
-      subtitle="Создайте реальный аккаунт, который будет работать только через backend API."
+      subtitle="Создайте реальный аккаунт, который работает через backend API и готов к дальнейшей интеграции роли."
     >
       <Card>
         <CardHeader>
@@ -55,12 +55,18 @@ export default function RegisterPage() {
             className="space-y-4"
             onSubmit={(event) => {
               event.preventDefault()
-              mutate(formData, {
-                onSuccess: (user) => {
-                  login(user)
-                  navigate(formData.role === 'carrier' ? '/become-carrier' : '/')
+              mutate(
+                {
+                  ...formData,
+                  phone: normalizePhoneValue(formData.phone),
                 },
-              })
+                {
+                  onSuccess: (user) => {
+                    login(user)
+                    navigate(formData.role === 'carrier' ? '/become-carrier' : '/')
+                  },
+                },
+              )
             }}
           >
             <AuthField icon={<UserRound size={16} />} label="Имя">
@@ -82,31 +88,30 @@ export default function RegisterPage() {
               />
             </AuthField>
 
-            <AuthField icon={<Phone size={16} />} label="Телефон">
-              <Input
-                value={formData.phone}
-                onChange={(event) => setFormData({ ...formData, phone: event.target.value })}
-                placeholder="+7 700 000 00 00"
-                className="pl-10"
-              />
-            </AuthField>
+            <label className="block space-y-2">
+              <span className="text-sm text-text-secondary">Телефон</span>
+              <PhoneInput value={formData.phone} onChange={(phone) => setFormData((prev) => ({ ...prev, phone }))} />
+            </label>
 
-            <AuthField icon={<BriefcaseBusiness size={16} />} label="Роль">
-              <Select
-                className="pl-10"
-                value={formData.role}
-                onChange={(event) => setFormData((prev) => ({ ...prev, role: event.target.value as RegisterRole }))}
-              >
+            <div className="space-y-2">
+              <span className="text-sm text-text-secondary">Роль</span>
+              <div className="grid grid-cols-2 gap-2">
                 {roleOptions.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
+                  <button
+                    key={role.value}
+                    type="button"
+                    onClick={() => setFormData((prev) => ({ ...prev, role: role.value }))}
+                    className={
+                      formData.role === role.value
+                        ? 'rounded-2xl border border-primary/20 bg-primary/10 px-4 py-3 text-left'
+                        : 'rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3 text-left text-text-secondary'
+                    }
+                  >
+                    <div className="font-medium text-white">{role.label}</div>
+                    <div className="mt-1 text-xs leading-5 text-text-secondary">{role.description}</div>
+                  </button>
                 ))}
-              </Select>
-            </AuthField>
-
-            <div className="rounded-2xl bg-white/[0.03] px-4 py-3 text-sm text-text-secondary">
-              {roleOptions.find((role) => role.value === formData.role)?.description}
+              </div>
             </div>
 
             <AuthField icon={<LockKeyhole size={16} />} label="Пароль">

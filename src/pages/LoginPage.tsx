@@ -82,6 +82,12 @@ export default function LoginPage() {
               Регистрация
             </Link>
           </div>
+
+          <div className="mt-3 text-center text-sm text-text-secondary">
+            <Link to="/forgot-password" className="text-primary transition-colors hover:text-white">
+              Забыли пароль?
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </AuthShell>

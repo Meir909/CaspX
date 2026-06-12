@@ -12,15 +12,20 @@ import CarrierProfileEditPage from '@/pages/CarrierProfileEditPage'
 import CarrierTransportPage from '@/pages/CarrierTransportPage'
 import CarrierVehicleEditPage from '@/pages/CarrierVehicleEditPage'
 import CreateOrderPage from '@/pages/CreateOrderPage'
+import ForgotPasswordPage from '@/pages/ForgotPasswordPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
 import OrderDetailsPage from '@/pages/OrderDetailsPage'
 import OrderHistoryPage from '@/pages/OrderHistoryPage'
 import OrderTrackingPage from '@/pages/OrderTrackingPage'
 import OrdersPage from '@/pages/OrdersPage'
+import PrivacyPage from '@/pages/PrivacyPage'
 import ProfilePage from '@/pages/ProfilePage'
+import ProfileEditPage from '@/pages/ProfileEditPage'
 import RegisterPage from '@/pages/RegisterPage'
+import ResetPasswordPage from '@/pages/ResetPasswordPage'
 import SupportPage from '@/pages/SupportPage'
+import TermsPage from '@/pages/TermsPage'
 
 function ProtectedRoute({
   children,
@@ -84,6 +89,8 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/login', element: <GuestRoute><LoginPage /></GuestRoute> },
       { path: '/register', element: <GuestRoute><RegisterPage /></GuestRoute> },
+      { path: '/forgot-password', element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
+      { path: '/reset-password', element: <GuestRoute><ResetPasswordPage /></GuestRoute> },
     ],
   },
   {
@@ -95,10 +102,13 @@ export const routes: RouteObject[] = [
       { path: '/orders/:id', element: <ProtectedRoute><OrderDetailsPage /></ProtectedRoute> },
       { path: '/orders/:id/tracking', element: <ProtectedRoute><OrderTrackingPage /></ProtectedRoute> },
       { path: '/profile', element: <ProtectedRoute><ProfilePage /></ProtectedRoute> },
+      { path: '/profile/edit', element: <ProtectedRoute><ProfileEditPage /></ProtectedRoute> },
       { path: '/become-carrier', element: <ProtectedRoute><BecomeCarrierPage /></ProtectedRoute> },
       { path: '/history', element: <ProtectedRoute><OrderHistoryPage /></ProtectedRoute> },
       { path: '/support', element: <ProtectedRoute><SupportPage /></ProtectedRoute> },
       { path: '/about', element: <ProtectedRoute><AboutPage /></ProtectedRoute> },
+      { path: '/terms', element: <ProtectedRoute><TermsPage /></ProtectedRoute> },
+      { path: '/privacy', element: <ProtectedRoute><PrivacyPage /></ProtectedRoute> },
       { path: '/carrier', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierDashboardPage /></ProtectedRoute> },
       { path: '/carrier/orders', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierOrdersPage /></ProtectedRoute> },
       { path: '/carrier/transport', element: <ProtectedRoute requiredRole="carrier" allowApprovedCarrier><CarrierTransportPage /></ProtectedRoute> },

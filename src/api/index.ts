@@ -237,6 +237,16 @@ function extractErrorMessage(payload: unknown, fallback: string) {
   return readString(payload, ['error', 'detail'], fallback) || fallback
 }
 
+function parseJsonSafely(raw: string) {
+  if (!raw) return null
+
+  try {
+    return JSON.parse(raw) as unknown
+  } catch {
+    return raw
+  }
+}
+
 function splitFullName(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean)
   return {
@@ -520,8 +530,9 @@ async function requestJson<T>(
 ): Promise<T> {
   const url = `${getApiBaseUrl()}${path}`
   const headers = new Headers(init.headers)
+  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData
 
-  if (!headers.has('Content-Type') && init.body) {
+  if (!headers.has('Content-Type') && init.body && !isFormData) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -539,7 +550,7 @@ async function requestJson<T>(
   })
 
   const raw = await response.text()
-  const payload = raw ? (JSON.parse(raw) as unknown) : null
+  const payload = parseJsonSafely(raw)
 
   if (response.status === 401 && options.auth && options.retryOnAuth !== false && getRefreshToken()) {
     await refreshTokens()

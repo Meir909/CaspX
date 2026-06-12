@@ -23,7 +23,7 @@ type CreateOrderInput = Partial<Order> & {
   weight: string | number
   volume: string | number
   date: string
-  cargoImages?: string[]
+  cargoImageFiles?: File[]
 }
 
 type UpdateOrderInput = Partial<{
@@ -31,6 +31,10 @@ type UpdateOrderInput = Partial<{
   to: string
   fromCountry: string
   toCountry: string
+  originLat: number
+  originLng: number
+  destinationLat: number
+  destinationLng: number
   cargoType: string
   weight: string | number
   volume: string | number
@@ -55,6 +59,16 @@ type UpdateCarrierProfileInput = Partial<{
   transportType: string
   description: string
 }>
+
+type UploadAvatarResult = {
+  url: string
+  user?: unknown
+}
+
+type UploadOrderMediaResult = {
+  url: string
+  order?: unknown
+}
 
 class ApiRequestError extends Error {
   status: number
@@ -257,8 +271,9 @@ async function requestJson<T>(
 ): Promise<T> {
   const url = `${getApiBaseUrl()}${path}`
   const headers = new Headers(init.headers)
+  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData
 
-  if (!headers.has('Content-Type') && init.body) {
+  if (!headers.has('Content-Type') && init.body && !isFormData) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -522,6 +537,22 @@ function buildOrderPayload(data: CreateOrderInput | UpdateOrderInput) {
     }
   }
 
+  if (typeof data.originLat === 'number' && Number.isFinite(data.originLat)) {
+    payload.originLat = data.originLat
+  }
+
+  if (typeof data.originLng === 'number' && Number.isFinite(data.originLng)) {
+    payload.originLng = data.originLng
+  }
+
+  if (typeof data.destinationLat === 'number' && Number.isFinite(data.destinationLat)) {
+    payload.destinationLat = data.destinationLat
+  }
+
+  if (typeof data.destinationLng === 'number' && Number.isFinite(data.destinationLng)) {
+    payload.destinationLng = data.destinationLng
+  }
+
   if (typeof data.cargoType === 'string' && data.cargoType.trim()) {
     payload.cargoType = data.cargoType.trim()
   }
@@ -536,11 +567,6 @@ function buildOrderPayload(data: CreateOrderInput | UpdateOrderInput) {
 
   if (typeof data.comment === 'string') {
     payload.comment = data.comment.trim() || undefined
-  }
-
-  if (data.cargoImages?.length) {
-    payload.cargoPhotoUrl = data.cargoImages[0]
-    payload.productPhotoUrls = data.cargoImages
   }
 
   if (data.status) {
@@ -565,6 +591,17 @@ function buildVehiclePayload(data: UpsertVehicleInput) {
     cargoVolume: Number(data.cargoVolume),
     vehicleImageUrl: data.vehicleImageUrl || undefined,
   }
+}
+
+function createUploadBody(file: File, extraFields: Record<string, string> = {}) {
+  const formData = new FormData()
+
+  Object.entries(extraFields).forEach(([key, value]) => {
+    formData.append(key, value)
+  })
+
+  formData.append('file', file)
+  return formData
 }
 
 export const backendApi = {
@@ -616,7 +653,43 @@ export const backendApi = {
         { auth: true },
       )
 
-      return mapOrder(payload)
+      const createdOrder = mapOrder(payload)
+
+      if (!data.cargoImageFiles?.length) {
+        return createdOrder
+      }
+
+      const [cargoFile, ...productFiles] = data.cargoImageFiles
+
+      await requestJson<UploadOrderMediaResult>(
+        '/uploads/cargo',
+        {
+          method: 'POST',
+          body: createUploadBody(cargoFile, { orderId: createdOrder.id }),
+        },
+        { auth: true },
+      )
+
+      await Promise.all(
+        productFiles.map((file) =>
+          requestJson<UploadOrderMediaResult>(
+            '/uploads/product',
+            {
+              method: 'POST',
+              body: createUploadBody(file, { orderId: createdOrder.id }),
+            },
+            { auth: true },
+          ),
+        ),
+      )
+
+      const refreshed = await requestJson<unknown>(
+        `/orders/${createdOrder.id}`,
+        { method: 'GET' },
+        { auth: true },
+      )
+
+      return mapOrder(refreshed)
     },
 
     getAvailableOrders: async () => {
@@ -773,6 +846,21 @@ export const backendApi = {
       )
 
       return mapCalculatedRoute(payload)
+    },
+  },
+
+  uploads: {
+    uploadAvatar: async (file: File) => {
+      assertLiveApi()
+
+      return requestJson<UploadAvatarResult>(
+        '/uploads/avatar',
+        {
+          method: 'POST',
+          body: createUploadBody(file),
+        },
+        { auth: true },
+      )
     },
   },
 }

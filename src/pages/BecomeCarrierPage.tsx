@@ -3,15 +3,19 @@ import { Camera, FileCheck2, IdCard, Route, Truck, UserCircle2 } from 'lucide-re
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PageIntro, SectionCard } from '@/components/app/primitives'
-import { Select } from '@/components/ui/select'
-import { useBecomeCarrier } from '@/hooks'
-import { cropAndResizeImage } from '@/lib/utils'
+import { useBecomeCarrier, useCreateVehicle } from '@/hooks'
+import { createImageCollageDataUrl, readFileAsDataUrl, resizeImageToFile } from '@/lib/utils'
+import { VehiclePlateInput } from '@/components/ui/vehicle-plate-input'
 import { useAuthStore } from '@/store'
+
+const directionOptions = ['Автомобильные', 'Морские', 'Мультимодальные']
 
 export default function BecomeCarrierPage() {
   const updateProfile = useAuthStore((state) => state.updateProfile)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [transportPreviews, setTransportPreviews] = useState<string[]>([])
+  const createVehicle = useCreateVehicle()
   const [formData, setFormData] = useState({
     company: 'TOO WestTrans KZ',
     businessId: '123456789012',
@@ -28,11 +32,10 @@ export default function BecomeCarrierPage() {
   if (submitted) {
     return (
       <div className="space-y-4">
-        <PageIntro title="Заявка отправлена" subtitle="Фото транспорта и данные профиля сохранены в кабинете перевозчика" />
+        <PageIntro title="Заявка отправлена" subtitle="Фото транспорта и данные профиля подготовлены для кабинета перевозчика." />
         <SectionCard>
           <div className="text-sm text-text-secondary">
-            Ваш транспорт добавлен во фронтенд-реестр перевозчиков. Теперь он будет виден на экране поиска
-            перевозчиков.
+            После одобрения профиля можно будет дополнять автопарк через live-раздел транспорта и редактировать карточки отдельно.
           </div>
         </SectionCard>
       </div>
@@ -46,12 +49,27 @@ export default function BecomeCarrierPage() {
         event.preventDefault()
 
         if (!formData.transportImage) {
-          setError('Нужно обязательно прикрепить фото транспорта.')
+          setError('Нужно обязательно прикрепить от 1 до 3 фото транспорта.')
           return
         }
 
         mutate(formData, {
-          onSuccess: () => {
+          onSuccess: async () => {
+            try {
+              await createVehicle.mutateAsync({
+                type: formData.direction,
+                brand: formData.company,
+                model: formData.transportType,
+                year: new Date().getFullYear(),
+                plateNumber: formData.plate,
+                capacityTons: Number(formData.capacity),
+                cargoVolume: Number(formData.volume),
+                vehicleImageUrl: formData.transportImage,
+              })
+            } catch {
+              // Carrier application stays successful even if the first vehicle card needs to be added later.
+            }
+
             updateProfile({
               company: formData.company,
               carrierStatus: 'approved',
@@ -61,7 +79,7 @@ export default function BecomeCarrierPage() {
         })
       }}
     >
-      <PageIntro title="Стать перевозчиком" subtitle="Заполните информацию о компании, транспорте и обязательно прикрепите фото ТС" />
+      <PageIntro title="Стать перевозчиком" subtitle="Заполните информацию о компании, транспорте и обязательно прикрепите фото ТС." />
 
       <SectionCard title="Компания">
         <div className="space-y-3">
@@ -71,14 +89,26 @@ export default function BecomeCarrierPage() {
           <Field label="БИН / ИИН" icon={<IdCard size={16} />}>
             <Input value={formData.businessId} onChange={(event) => setFormData((prev) => ({ ...prev, businessId: event.target.value }))} className="pl-10" />
           </Field>
-          <label className="block space-y-2">
+
+          <div className="space-y-2">
             <span className="text-sm text-text-secondary">Направление</span>
-            <Select value={formData.direction} onChange={(event) => setFormData((prev) => ({ ...prev, direction: event.target.value }))}>
-              <option>Автомобильные</option>
-              <option>Морские</option>
-              <option>Мультимодальные</option>
-            </Select>
-          </label>
+            <div className="grid grid-cols-3 gap-2">
+              {directionOptions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, direction: option }))}
+                  className={
+                    formData.direction === option
+                      ? 'rounded-2xl border border-primary/20 bg-primary/10 px-3 py-3 text-sm text-white'
+                      : 'rounded-2xl border border-white/8 bg-white/[0.03] px-3 py-3 text-sm text-text-secondary'
+                  }
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </SectionCard>
 
@@ -93,9 +123,10 @@ export default function BecomeCarrierPage() {
           <Field label="Объем, м3" icon={<Route size={16} />}>
             <Input type="number" min="1" value={formData.volume} onChange={(event) => setFormData((prev) => ({ ...prev, volume: event.target.value }))} className="pl-10" />
           </Field>
-          <Field label="Госномер" icon={<Truck size={16} />}>
-            <Input value={formData.plate} onChange={(event) => setFormData((prev) => ({ ...prev, plate: event.target.value }))} className="pl-10" />
-          </Field>
+          <label className="col-span-2 block space-y-2">
+            <span className="text-sm text-text-secondary">Госномер</span>
+            <VehiclePlateInput value={formData.plate} onChange={(plate) => setFormData((prev) => ({ ...prev, plate }))} />
+          </label>
         </div>
 
         <div className="mt-3">
@@ -110,24 +141,52 @@ export default function BecomeCarrierPage() {
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] px-4 py-6 text-center">
           <Camera size={20} className="mb-2 text-primary" />
           <span className="text-sm text-white">Загрузить фото транспорта</span>
-          <span className="mt-1 text-xs text-text-secondary">Это обязательное поле</span>
+          <span className="mt-1 text-xs text-text-secondary">Минимум 1 фото, максимум 3 фото</span>
           <input
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
             onChange={async (event) => {
-              const file = event.target.files?.[0]
-              if (!file) return
-              const preview = await cropAndResizeImage(file, { width: 1280, height: 960, quality: 0.9 })
+              const files = Array.from(event.target.files ?? [])
+
+              if (files.length < 1 || files.length > 3) {
+                setError('Нужно прикрепить от 1 до 3 фото транспорта.')
+                return
+              }
+
+              const resized = await Promise.all(
+                files.map((file, index) =>
+                  resizeImageToFile(file, {
+                    width: 1280,
+                    height: 960,
+                    quality: 0.78,
+                    fileName: `vehicle-${index + 1}.jpg`,
+                  }),
+                ),
+              )
+
+              const previews = await Promise.all(resized.map((file) => readFileAsDataUrl(file)))
+              const collage = await createImageCollageDataUrl(resized, {
+                width: 1280,
+                height: 960,
+                quality: 0.76,
+              })
+
               setError('')
-              setFormData((prev) => ({ ...prev, transportImage: preview }))
+              setTransportPreviews(previews)
+              setFormData((prev) => ({ ...prev, transportImage: collage }))
             }}
           />
         </label>
 
-        {formData.transportImage ? (
-          <div className="mt-4 overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
-            <img src={formData.transportImage} alt="transport" className="h-48 w-full object-cover" />
+        {transportPreviews.length ? (
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {transportPreviews.map((image, index) => (
+              <div key={`${index}-${image.slice(0, 20)}`} className="overflow-hidden rounded-2xl border border-white/5 bg-white/[0.03]">
+                <img src={image} alt={`transport-${index + 1}`} className="h-24 w-full object-cover" />
+              </div>
+            ))}
           </div>
         ) : null}
       </SectionCard>

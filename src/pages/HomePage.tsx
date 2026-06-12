@@ -9,22 +9,23 @@ export default function HomePage() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
 
-  const quickActions = user?.role === 'carrier' && user?.carrierStatus === 'approved'
-    ? [
-        { label: 'Кабинет', icon: Boxes, path: '/carrier' },
-        { label: 'Заказы', icon: Files, path: '/carrier/orders' },
-        { label: 'Транспорт', icon: Truck, path: '/carrier/transport' },
-      ]
-    : [
-        { label: 'Создать', icon: FilePlus2, path: '/create-order' },
-        { label: 'Мои заказы', icon: Files, path: '/orders' },
-      ]
+  const quickActions =
+    user?.role === 'carrier' && user?.carrierStatus === 'approved'
+      ? [
+          { label: 'Кабинет', icon: Boxes, path: '/carrier' },
+          { label: 'Заказы', icon: Files, path: '/carrier/orders' },
+          { label: 'Транспорт', icon: Truck, path: '/carrier/transport' },
+        ]
+      : [
+          { label: 'Создать', icon: FilePlus2, path: '/create-order' },
+          { label: 'Мои заказы', icon: Files, path: '/orders' },
+        ]
 
   return (
     <div className="space-y-4">
       <PageIntro
         title={user?.role === 'carrier' ? 'Рабочее место перевозчика' : 'CaspX'}
-        subtitle={user?.role === 'carrier' ? 'Только живые данные и рабочие сценарии' : 'Создание и контроль заказов через backend'}
+        subtitle={user?.role === 'carrier' ? 'Только живые данные и рабочие сценарии.' : 'Создание и контроль заказов через backend.'}
       />
 
       <motion.button
@@ -42,7 +43,7 @@ export default function HomePage() {
             <p className="mt-2 max-w-[220px] text-sm text-slate-300">
               {user?.role === 'carrier'
                 ? 'Смотрите доступные заявки и работайте только с данными, пришедшими из backend.'
-                : 'Создайте новую заявку и дальше отслеживайте ее в списке заказов.'}
+                : 'Создайте новую заявку и дальше отслеживайте ее в списке заказов и на карте маршрута.'}
             </p>
             <div className="mt-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-white">
               <ArrowRight size={18} />
@@ -74,10 +75,10 @@ export default function HomePage() {
         })}
       </div>
 
-      <SectionCard title="Статус фронтенда">
+      <SectionCard title="Статус системы">
         <div className="space-y-3 text-sm text-text-secondary">
-          <p>В интерфейсе оставлены только сценарии, которые опираются на текущие backend endpoint'ы.</p>
-          <p>Демо-разделы, фейковые уведомления, тестовые маршруты и искусственные подборки убраны из навигации.</p>
+          <p>В интерфейсе оставлены только рабочие сценарии, которые опираются на текущие backend-endpoint'ы.</p>
+          <p>Формы заказов, live-профили, транспорт, карта маршрута и загрузка изображений уже работают через реальный API-слой.</p>
         </div>
       </SectionCard>
 

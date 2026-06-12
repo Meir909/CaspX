@@ -114,6 +114,18 @@ export const useUpdateCarrierProfile = () => {
   })
 }
 
+export const useUploadAvatar = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: backendApi.uploads.uploadAvatar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      queryClient.invalidateQueries({ queryKey: ['carrier', 'profile'] })
+    },
+  })
+}
+
 export const useTrackingTimeline = (orderId?: string) =>
   useQuery({
     queryKey: ['orders', orderId, 'tracking'],
